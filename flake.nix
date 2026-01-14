@@ -35,7 +35,7 @@
 
             (writeShellScriptBin "upload" ''
               ${pkgs.s5cmd}/bin/s5cmd sync \
-                --cache-control="max-age=31536000, s-maxage=31536000, stale-while-revalidate=3600, stale-if-error=1209600, no-transform, public" \
+                --cache-control="max-age=3600, s-maxage=3600, stale-while-revalidate=3600, stale-if-error=1800, no-transform, public" \
                 ./dist/ s3://s3.elates.it/dashboard-generator/
             '')
           ];
