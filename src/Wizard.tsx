@@ -9,7 +9,6 @@ import { Step5Output } from "./components/output.tsx";
 // Main Wizard Component
 export function Wizard() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     dashboardName: '',
     dashboardDescription: '',
@@ -134,49 +133,21 @@ export function Wizard() {
     setCurrentStep(currentStep - 1);
   };
 
-  const handleSubmit = () => {
-    if (validateStep(currentStep)) {
-      setSubmitted(true);
-      console.log('Dashboard config submitted:', formData);
-    }
-  };
 
   const handleReset = () => {
     setCurrentStep(1);
-    setSubmitted(false);
     setFormData({
       dashboardName: '',
       dashboardDescription: '',
       sreEnabled: false,
       sliTarget: '',
       metrics: [{ name: '', isSli: false, query: '', querySuccess: '', queryErrors: '' }],
-      logsEnabled: false,
       logsServiceName: '',
       logsIsJson: false,
       logsFilters: []
     });
     setErrors({});
   };
-
-  if (submitted) {
-    return (
-      <div className="wizard-container">
-        <div className="wizard-header">
-          <h1>✨ Success!</h1>
-        </div>
-        <div className="wizard-content">
-          <div className="success-message">
-            <div className="success-icon">✓</div>
-            <h2>Dashboard Template Generated!</h2>
-            <p>Your Grafana dashboard configuration has been generated and copied to your clipboard. You can now use it to create your dashboard.</p>
-            <button className="btn btn-primary" onClick={handleReset}>
-              Create Another Dashboard
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const CurrentStepComponent = steps[currentStep - 1].component;
   const isLastStep = currentStep === steps.length;
@@ -244,8 +215,8 @@ export function Wizard() {
             Next →
           </button>
         ) : (
-          <button className="btn btn-primary" onClick={handleSubmit}>
-            Generate Template ✓
+          <button className="btn btn-primary" onClick={handleReset}>
+            Start Over
           </button>
         )}
       </div>
