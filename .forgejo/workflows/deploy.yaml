@@ -1,0 +1,23 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build_and_upload:
+    runs-on: nix
+    env:
+      SOPS_AGE_KEY: "${{ vars.SOPS_AGE_KEY }}"
+      TF_INPUT: "0"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          lfs: true
+
+      - name: Build
+        run: nix develop --fallback --command bun run build
+      - name: Upload
+        run: nix develop --fallback --command upload
