@@ -1,5 +1,6 @@
 import {
   DashboardBuilder,
+  DashboardCursorSync,
   DatasourceVariableBuilder,
   RowBuilder,
   ThresholdsConfigBuilder,
@@ -22,6 +23,7 @@ export function Step5Output({ formData }) {
       .description(formData.dashboardDescription)
       .time({ from: 'now-6h', to: 'now' })
       .timezone('browser')
+      .tooltip(DashboardCursorSync.Crosshair)
       .timepicker(
         new TimePickerBuilder()
           .refreshIntervals(["30s", "1m", "5m", "15m", "30m", "1h", "6h", "1d", "7d"])
