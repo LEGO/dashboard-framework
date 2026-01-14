@@ -30,7 +30,15 @@
         devShell = pkgs.mkShell {
           packages = with pkgs; [
             bun
+            s5cmd
+            sops
           ];
+
+          shellHook = ''
+            set -a
+            source <(${pkgs.sops}/bin/sops --decrypt ./.sops.env)
+            set +a
+          '';
         };
       }
     );
