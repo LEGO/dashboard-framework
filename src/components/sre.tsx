@@ -1,6 +1,8 @@
+import moment from 'moment';
+
 export function Step2SRE({formData, updateField, errors}){
   const calculateDowntime = (percentage, period) => {
-    const uptime = percentage / 100;
+    if(percentage === 100) return "impossible!";
     const downtimePercentage = (100 - percentage);
 
     let hours = 0;
@@ -9,14 +11,12 @@ export function Step2SRE({formData, updateField, errors}){
     else hours = 7 * 24;
 
     const downtimeHours = (hours * downtimePercentage) / 100;
-    const minutes = (downtimeHours % 1) * 60;
-
-    return `${Math.floor(downtimeHours)}h ${Math.round(minutes)}m`;
+    return moment.duration(downtimeHours, "hours").humanize(false);
   };
 
   return (
     <div>
-      <h3 style={{marginBottom: '20px', color: '#1e293b'}}>SRE/SLO Configuration</h3>
+      <h3 style={{marginBottom: '20px', color: '#1e293b'}}>Service Level Objective</h3>
 
       <div className="form-group">
         <label style={{display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer'}}>
@@ -28,20 +28,22 @@ export function Step2SRE({formData, updateField, errors}){
             />
             <span className="toggle-slider"></span>
           </div>
-          <span style={{fontWeight: '500'}}>Enable SRE/SLO Practices</span>
+          <span style={{fontWeight: '500'}}>Calculate Service Level Objective</span>
         </label>
-        <div className="form-hint">Use SLI targets to calculate availability and error budgets</div>
+        <div className="form-hint">
+          By enabling the SRE's SLO, the dashboard can include availability and error budgets.
+        </div>
       </div>
 
       {formData.sreEnabled && (
         <>
           <div className="form-group">
-            <label className="form-label">SLI Target (Availability %) *</label>
+            <label className="form-label">Availability Target *</label>
             <input
               type="number"
               className={`form-input ${errors.sliTarget ? 'error' : ''}`}
               placeholder="99.9"
-              step="0.01"
+              step="0.001"
               min="0"
               max="100"
               value={formData.sliTarget}
