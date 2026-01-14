@@ -6,13 +6,13 @@
       "name": "bun-react-template",
       "dependencies": {
         "@grafana/grafana-foundation-sdk": "^11.6.0-cogv0.0.x.1753977659",
-        "react": "^19",
-        "react-dom": "^19",
+        "react": "^19.2.3",
+        "react-dom": "^19.2.3",
       },
       "devDependencies": {
         "@types/bun": "latest",
-        "@types/react": "^19",
-        "@types/react-dom": "^19",
+        "@types/react": "^19.2.7",
+        "@types/react-dom": "^19.2.3",
       },
     },
   },

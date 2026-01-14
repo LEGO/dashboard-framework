@@ -18,6 +18,8 @@ jobs:
           lfs: true
 
       - name: Build
+        run: nix develop --fallback --command bun install --production
+      - name: Build
         run: nix develop --fallback --command bun run build
       - name: Upload
         run: nix develop --fallback --command upload
