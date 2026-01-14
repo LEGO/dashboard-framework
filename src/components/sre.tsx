@@ -17,6 +17,12 @@ export function Step2SRE({formData, updateField, errors}){
   return (
     <div>
       <h3 style={{marginBottom: '20px', color: '#1e293b'}}>Service Level Objective</h3>
+      <p style={{ color: '#64748b', marginBottom: '20px', fontSize: '14px' }}>
+        Service Level Objectives (SLO) are useful in many different ways. They
+        can be used to calculate alerts, health of services to users, prioritize
+        stability vs features, and more! If you are not interested into Site
+        Reliability Engineering you can disable this feature.
+      </p>
 
       <div className="form-group">
         <label style={{display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer'}}>
@@ -31,7 +37,8 @@ export function Step2SRE({formData, updateField, errors}){
           <span style={{fontWeight: '500'}}>Calculate Service Level Objective</span>
         </label>
         <div className="form-hint">
-          By enabling the SRE's SLO, the dashboard can include availability and error budgets.
+          By enabling the SLO, the dashboard can include availability and error budgets
+          when specifying metrics.
         </div>
       </div>
 
@@ -42,7 +49,7 @@ export function Step2SRE({formData, updateField, errors}){
             <input
               type="number"
               className={`form-input ${errors.sliTarget ? 'error' : ''}`}
-              placeholder="99.9"
+              placeholder="e.g. 99.9"
               step="0.001"
               min="0"
               max="100"

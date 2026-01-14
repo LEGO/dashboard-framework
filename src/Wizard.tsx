@@ -152,7 +152,7 @@ export function Wizard() {
   };
 
   const CurrentStepComponent = steps[currentStep].component;
-  const isLastStep = currentStep === steps.length;
+  const isLastStep = currentStep === steps.length-1;
   return (
     <div className="wizard-container">
       <div className="wizard-header">

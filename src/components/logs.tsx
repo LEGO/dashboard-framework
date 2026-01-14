@@ -13,7 +13,7 @@ export function Step4Logs({ formData, updateField, errors, addLogsFilter, remove
           onChange={(e) => updateField('logsServiceName', e.target.value)}
         />
         {errors.logsServiceName && <div className="form-error">⚠️ {errors.logsServiceName}</div>}
-        <div className="form-hint">This will be used as the OpenTelemetry service_name label/attribute</div>
+        <div className="form-hint">This will be used to fill the <code>service_name</code> label/attribute</div>
       </div>
 
       <div className="form-group">
