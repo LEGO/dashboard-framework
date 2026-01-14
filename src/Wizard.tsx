@@ -212,9 +212,11 @@ export function Wizard() {
         >
           ← Previous
         </button>
-        <div style={{ fontSize: '12px', color: '#64748b', alignSelf: 'center' }}>
-          Step {currentStep} of {steps.length}
-        </div>
+        {(!isLastStep && currentStep !== 0) ? (
+          <div style={{ fontSize: '12px', color: '#64748b', alignSelf: 'center' }}>
+            Step {currentStep} of {steps.length-2}
+          </div>
+        ) : (<></>)}
         {!isLastStep ? (
           <button className="btn btn-primary" onClick={handleNext}>
             Next →
