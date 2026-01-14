@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { Step1Introduction } from "./components/intro.tsx";
 import { Step1Basics } from "./components/info.tsx";
 import { Step2SRE } from "./components/sre.tsx";
 import { Step3Metrics } from "./components/metrics.tsx";
@@ -8,7 +9,7 @@ import { Step5Output } from "./components/output.tsx";
 
 // Main Wizard Component
 export function Wizard() {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
     dashboardName: '',
     dashboardDescription: '',
@@ -22,8 +23,9 @@ export function Wizard() {
   const [errors, setErrors] = useState({});
 
   const steps = [
+    { id: 0, label: 'Introduction', component: Step1Introduction },
     { id: 1, label: 'Basics', component: Step1Basics },
-    { id: 2, label: 'SRE', component: Step2SRE },
+    { id: 2, label: 'SLO', component: Step2SRE },
     { id: 3, label: 'Metrics', component: Step3Metrics },
     { id: 4, label: 'Logs', component: Step4Logs },
     { id: 5, label: 'Output', component: Step5Output },
@@ -135,7 +137,7 @@ export function Wizard() {
 
 
   const handleReset = () => {
-    setCurrentStep(1);
+    setCurrentStep(0);
     setFormData({
       dashboardName: '',
       dashboardDescription: '',
@@ -149,7 +151,7 @@ export function Wizard() {
     setErrors({});
   };
 
-  const CurrentStepComponent = steps[currentStep - 1].component;
+  const CurrentStepComponent = steps[currentStep].component;
   const isLastStep = currentStep === steps.length;
   return (
     <div className="wizard-container">
@@ -203,7 +205,7 @@ export function Wizard() {
         <button
           className="btn btn-secondary"
           onClick={handlePrevious}
-          disabled={currentStep === 1}
+          disabled={currentStep === 0}
         >
           ← Previous
         </button>
