@@ -6,7 +6,6 @@ import {
   ThresholdsConfigBuilder,
   ThresholdsMode,
   TimePickerBuilder,
-  VariableHide,
 } from '@grafana/grafana-foundation-sdk/dashboard';
 
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
@@ -141,7 +140,7 @@ export function Step5Output({ formData }) {
 
   return (
     <div>
-      <h3 style={{ marginBottom: '20px', color: '#1e293b' }}>📊 Grafana Dashboard Generated</h3>
+      <h3 style={{ marginBottom: '20px', color: '#1e293b' }}>Done! 🎉</h3>
 
       <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: '#f0f9ff', borderRadius: 'var(--radius-md)', border: '1px solid #bfdbfe' }}>
         <div style={{ color: '#1e3a8a', fontSize: '14px' }}>
@@ -151,7 +150,6 @@ export function Step5Output({ formData }) {
             <li>Copy or download the dashboard JSON file</li>
             <li>Go to Grafana → Dashboards → Import</li>
             <li>Paste the JSON or upload the file</li>
-            <li>Select your Prometheus/Loki datasources</li>
             <li>Click Import</li>
           </ol>
         </div>

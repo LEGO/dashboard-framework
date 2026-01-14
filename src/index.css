@@ -52,13 +52,12 @@ body {
   width: 100%;
   max-width: 700px;
   overflow: hidden;
-  max-height: 90vh;
   display: flex;
   flex-direction: column;
 }
 
 .wizard-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #2563eb 100%);
   padding: var(--spacing-xl) var(--spacing-lg);
   color: white;
   text-align: center;
@@ -382,21 +381,6 @@ input:checked+.toggle-slider:before {
 .btn:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-}
-
-.markdown-output {
-  background: #1e293b;
-  color: #e2e8f0;
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-md);
-  font-family: monospace;
-  font-size: 12px;
-  overflow-x: auto;
-  max-height: 400px;
-  overflow-y: auto;
-  border: 1px solid #334155;
-  white-space: pre-wrap;
-  word-wrap: break-word;
 }
 
 .success-message {

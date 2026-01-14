@@ -93,6 +93,9 @@ export function Wizard() {
       if (formData.sreEnabled && (parseFloat(formData.sliTarget) <= 0 || parseFloat(formData.sliTarget) > 100)) {
         newErrors.sliTarget = 'SLI target must be between 0 and 100';
       }
+      if (formData.sreEnabled && (parseFloat(formData.sliTarget) == 100)) {
+        newErrors.sliTarget = 'WOW! What is your Infrastructure provider? Not even Google or AWS have a real 100% availability!';
+      }
     }
 
     if (stepNum === 3) {

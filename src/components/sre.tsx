@@ -2,7 +2,7 @@ import moment from 'moment';
 
 export function Step2SRE({formData, updateField, errors}){
   const calculateDowntime = (percentage, period) => {
-    if(percentage === 100) return "impossible!";
+    if(percentage === 100) return "impossible! 😅";
     const downtimePercentage = (100 - percentage);
 
     let hours = 0;
@@ -45,7 +45,7 @@ export function Step2SRE({formData, updateField, errors}){
       {formData.sreEnabled && (
         <>
           <div className="form-group">
-            <label className="form-label">Availability Target *</label>
+            <label className="form-label">SLO / Availability Target *</label>
             <input
               type="number"
               className={`form-input ${errors.sliTarget ? 'error' : ''}`}
@@ -63,21 +63,23 @@ export function Step2SRE({formData, updateField, errors}){
           {formData.sliTarget && !isNaN(parseFloat(formData.sliTarget)) && parseFloat(formData.sliTarget) > 0 && parseFloat(formData.sliTarget) <= 100 && (
             <div className="calculation-box">
               <div style={{marginBottom: 'var(--spacing-md)', fontWeight: '600', color: 'var(--color-text-primary)'}}>
-                Your Error Budget @ {formData.sliTarget}% availability:
-                                </div>
+                Your Error Budget with {formData.sliTarget}% availability:
+              </div>
               <div style={{marginBottom: 'var(--spacing-md)', fontSize: '13px', color: 'var(--color-text-secondary)', fontStyle: 'italic'}}>
-                Users will start complaining hard if your app goes down for more than:
-                                </div>
+                This shows you the maximum amount of time when your service is unavailable, before it disrupts
+                the user experience/expectations. For example: How much time can my application be down before a user
+                really complains about the it?
+              </div>
               <div className="calculation-item">
-                <span className="calculation-label">In a Year:</span>
+                <span className="calculation-label">Unavailability allowed in a Year:</span>
                 <span className="calculation-value">{calculateDowntime(parseFloat(formData.sliTarget), 'year')}</span>
               </div>
               <div className="calculation-item">
-                <span className="calculation-label">In a Month:</span>
+                <span className="calculation-label">Unavailability allowed in a Month:</span>
                 <span className="calculation-value">{calculateDowntime(parseFloat(formData.sliTarget), 'month')}</span>
               </div>
               <div className="calculation-item">
-                <span className="calculation-label">In a Week:</span>
+                <span className="calculation-label">Unavailability allowed in a Week:</span>
                 <span className="calculation-value">{calculateDowntime(parseFloat(formData.sliTarget), 'week')}</span>
               </div>
             </div>

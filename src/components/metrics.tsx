@@ -63,7 +63,7 @@ export function Step3Metrics({ formData, updateField, errors, addMetric, removeM
                 <label className="form-label">Query for Successful metric*</label>
                 <textarea
                   className={`form-textarea ${errors[`metric_${idx}_querySuccess`] ? 'error' : ''}`}
-                  placeholder="e.g., sum(rate(checkout_orders_successful_total[5m]))"
+                  placeholder="e.g., sum(rate(checkout_orders_successful_total{}[5m]))"
                   value={metric.querySuccess}
                   onChange={(e) => updateMetric(idx, 'querySuccess', e.target.value)}
                   style={{ minHeight: '70px' }}
@@ -75,7 +75,7 @@ export function Step3Metrics({ formData, updateField, errors, addMetric, removeM
                 <label className="form-label">Query for Failed metric*</label>
                 <textarea
                   className={`form-textarea ${errors[`metric_${idx}_queryErrors`] ? 'error' : ''}`}
-                  placeholder="e.g., sum(rate(checkout_orders_failed_total{status=~'5..'}[5m]))"
+                  placeholder="e.g., sum(rate(checkout_orders_failed_total{}[5m]))"
                   value={metric.queryErrors}
                   onChange={(e) => updateMetric(idx, 'queryErrors', e.target.value)}
                   style={{ minHeight: '70px' }}
