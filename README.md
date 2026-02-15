@@ -1,21 +1,7 @@
-# bun-react-template
+# Dashboard Framework
 
-To install dependencies:
+This project contains the code of the Dashboard Framework (Wizard). It helps
+creating intuitive, and valuable Grafana Dashboards by asking simple questions
+and by focusing on what telemetry data would be more useful to present rather
+than how to structure it.
 
-```bash
-bun install
-```
-
-To start a development server:
-
-```bash
-bun dev
-```
-
-To run for production:
-
-```bash
-bun start
-```
-
-This project was created using `bun init` in bun v1.3.5. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
