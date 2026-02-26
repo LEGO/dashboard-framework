@@ -1,4 +1,4 @@
-export function Step1Introduction(){
+export function Component(){
   return (
     <div>
       <h3 style={{ marginBottom: 'var(--spacing-md)', color: '#1e293b' }}>Dashboard Generator</h3>

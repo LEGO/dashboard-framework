@@ -1,31 +1,22 @@
 import { useState } from "react";
 
-import { Step1Introduction } from "./components/intro.tsx";
-import { Step1Basics } from "./components/info.tsx";
-import { Step2SRE } from "./components/sre.tsx";
-import { Step3Metrics } from "./components/metrics.tsx";
-import { Step4Logs } from "./components/logs.tsx";
-import { Step5Output } from "./components/output.tsx";
+import { Component as Step1Introduction } from "./components/intro.tsx";
+import { Component as Step1Basics } from "./components/info.tsx";
+import { Component as Step2Features } from "./components/features.tsx";
+import { Component as Step3Metrics } from "./components/metrics.tsx";
+import { Component as Step4Logs } from "./components/logs.tsx";
+import { Component as Step5Output } from "./components/output.tsx";
 
 // Main Wizard Component
 export function Wizard() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
-    dashboardName: '',
-    dashboardDescription: '',
-    sreEnabled: false,
-    sliTarget: '',
-    metrics: [{ name: '', isSli: false, query: '', querySuccess: '', queryErrors: '' }],
-    logsServiceName: '',
-    logsIsJson: false,
-    logsFilters: []
-  });
+  const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
 
   const steps = [
     { id: 0, label: 'Introduction', component: Step1Introduction },
     { id: 1, label: 'Basics', component: Step1Basics },
-    { id: 2, label: 'SLO', component: Step2SRE },
+    { id: 2, label: 'Features', component: Step2Features },
     { id: 3, label: 'Metrics', component: Step3Metrics },
     { id: 4, label: 'Logs', component: Step4Logs },
     { id: 5, label: 'Output', component: Step5Output },
@@ -144,8 +135,6 @@ export function Wizard() {
     setFormData({
       dashboardName: '',
       dashboardDescription: '',
-      sreEnabled: false,
-      sliTarget: '',
       metrics: [{ name: '', isSli: false, query: '', querySuccess: '', queryErrors: '' }],
       logsServiceName: '',
       logsIsJson: false,
@@ -178,30 +167,17 @@ export function Wizard() {
         ))}
       </div>
       <div className="wizard-content">
-        {currentStep === 3 ? (
-          <CurrentStepComponent
-            formData={formData}
-            updateField={updateField}
-            errors={errors}
-            addMetric={addMetric}
-            removeMetric={removeMetric}
-            updateMetric={updateMetric}
-          />
-        ) : currentStep === 4 ? (
-          <CurrentStepComponent
-            formData={formData}
-            updateField={updateField}
-            errors={errors}
-            addLogsFilter={addLogsFilter}
-            removeLogsFilter={removeLogsFilter}
-          />
-        ) : (
-          <CurrentStepComponent
-            formData={formData}
-            updateField={updateField}
-            errors={errors}
-          />
-        )}
+        <CurrentStepComponent
+          addLogsFilter={addLogsFilter}
+          addMetric={addMetric}
+          errors={errors}
+          formData={formData}
+          removeLogsFilter={removeLogsFilter}
+          removeMetric={removeMetric}
+          setFormData={setFormData}
+          updateField={updateField}
+          updateMetric={updateMetric}
+        />
       </div>
 
       <div className="wizard-footer">

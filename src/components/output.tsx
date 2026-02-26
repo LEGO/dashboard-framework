@@ -15,7 +15,7 @@ import { PanelBuilder as LogsPanelBuilder } from '@grafana/grafana-foundation-sd
 import { PanelBuilder as StatusHistoryPanelBuilder } from '@grafana/grafana-foundation-sdk/statushistory';
 import { AxisPlacement, LogsDedupStrategy, VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
 
-export function Step5Output({ formData }) {
+export function Component({ formData }) {
   const generateGrafanaDashboard = () => {
     let dashboard = new DashboardBuilder(formData.dashboardName)
       .refresh('1m')

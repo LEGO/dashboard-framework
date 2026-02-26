@@ -1,4 +1,23 @@
-export function Step3Metrics({ formData, updateField, errors, addMetric, removeMetric, updateMetric }) {
+import{ createContext, useContext } from 'react';
+
+export const Context = createContext([]);
+
+export function Component({errors, setErrors}) {
+  const { metricsData, setMetricsData } = useContext(Context);
+
+  const removeMetric = (idx) => setMetricsData(prev => prev.filter((_, i) => i !== idx));
+  const addMetric = () => setMetricsData(prev => [...prev, { name: '', query: '', querySuccess: '', queryErrors: '' }])
+  const updateMetric = (idx, field, value) => {
+    setMetricsData(prev => {
+      let newMetrics = [...prev]
+      newMetrics[idx] = {...prev[idx], [field]: value };
+      return newMetrics;
+    });
+    if (errors[`metric_${idx}_${field}`]) {
+      setErrors(prev => ({ ...prev, [`metric_${idx}_${field}`]: '' }));
+    };
+  };
+  
   return (
     <div>
       <h3 style={{ marginBottom: 'var(--spacing-md)', color: '#1e293b' }}>Key Metrics</h3>
@@ -14,10 +33,10 @@ export function Step3Metrics({ formData, updateField, errors, addMetric, removeM
         Add up to 3 metrics: Pick the most important ones!
       </p>
 
-      {formData.metrics && formData.metrics.map((metric, idx) => (
+      {metricsData && metricsData.map((metric, idx) => (
         <div key={idx} className="metric-card">
           <div className="metric-header">
-            {formData.metrics.length > 1 && (
+            {metricsData.length > 1 && (
               <button
                 type="button"
                 className="btn btn-secondary"
@@ -41,69 +60,21 @@ export function Step3Metrics({ formData, updateField, errors, addMetric, removeM
             {errors[`metric_${idx}_name`] && <div className="form-error">⚠️ {errors[`metric_${idx}_name`]}</div>}
           </div>
 
-          {formData.sreEnabled && (
-            <div className="form-group">
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer' }}>
-                <div className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={metric.isSli}
-                    onChange={(e) => updateMetric(idx, 'isSli', e.target.checked)}
-                  />
-                  <span className="toggle-slider"></span>
-                </div>
-                <span style={{ fontWeight: '500' }}>Calculate SLO Percentage</span>
-              </label>
-            </div>
-          )}
-
-          {metric.isSli && formData.sreEnabled ? (
-            <>
-              <div className="form-group">
-                <label className="form-label">Query for Successful metric*</label>
-                <textarea
-                  className={`form-textarea ${errors[`metric_${idx}_querySuccess`] ? 'error' : ''}`}
-                  placeholder="e.g., sum(rate(checkout_orders_successful_total{}[5m]))"
-                  value={metric.querySuccess}
-                  onChange={(e) => updateMetric(idx, 'querySuccess', e.target.value)}
-                  style={{ minHeight: '70px' }}
-                />
-                {errors[`metric_${idx}_querySuccess`] && <div className="form-error">⚠️ {errors[`metric_${idx}_querySuccess`]}</div>}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Query for Failed metric*</label>
-                <textarea
-                  className={`form-textarea ${errors[`metric_${idx}_queryErrors`] ? 'error' : ''}`}
-                  placeholder="e.g., sum(rate(checkout_orders_failed_total{}[5m]))"
-                  value={metric.queryErrors}
-                  onChange={(e) => updateMetric(idx, 'queryErrors', e.target.value)}
-                  style={{ minHeight: '70px' }}
-                />
-                {errors[`metric_${idx}_queryErrors`] && <div className="form-error">⚠️ {errors[`metric_${idx}_queryErrors`]}</div>}
-              </div>
-
-              <div style={{ padding: 'var(--spacing-md)', background: '#f0f9ff', borderRadius: 'var(--radius-md)', border: '1px solid #bfdbfe', fontSize: '12px', color: '#1e3a8a' }}>
-                <strong>Availability will be calculated as:</strong> Success / (Success + Errors). You can change this later
-              </div>
-            </>
-          ) : (
-            <div className="form-group">
-              <label className="form-label">PromQL Query *</label>
-              <textarea
-                className={`form-textarea ${errors[`metric_${idx}_query`] ? 'error' : ''}`}
-                placeholder="e.g., sum(rate(metric_name[5m]))"
-                value={metric.query}
-                onChange={(e) => updateMetric(idx, 'query', e.target.value)}
-                style={{ minHeight: '70px' }}
-              />
-              {errors[`metric_${idx}_query`] && <div className="form-error">⚠️ {errors[`metric_${idx}_query`]}</div>}
-            </div>
-          )}
+          <div className="form-group">
+            <label className="form-label">PromQL Query *</label>
+            <textarea
+              className={`form-textarea ${errors[`metric_${idx}_query`] ? 'error' : ''}`}
+              placeholder="e.g., sum(rate(metric_name[5m]))"
+              value={metric.query}
+              onChange={(e) => updateMetric(idx, 'query', e.target.value)}
+              style={{ minHeight: '70px' }}
+            />
+            {errors[`metric_${idx}_query`] && <div className="form-error">⚠️ {errors[`metric_${idx}_query`]}</div>}
+          </div>
         </div>
       ))}
 
-      {formData.metrics && formData.metrics.length < 3 && (
+      {metricsData && metricsData.length < 3 && (
         <button
           type="button"
           className="btn btn-secondary"

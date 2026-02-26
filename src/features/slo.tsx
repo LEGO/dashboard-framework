@@ -1,6 +1,9 @@
 import moment from 'moment';
 
-export function Step2SRE({formData, updateField, errors}){
+export const FeatureID = "slo";
+export const FeatureName = "Service Level Objective";
+
+export function SetupComponent({formData, updateField, errors}){
   const calculateDowntime = (percentage, period) => {
     if(percentage === 100) return "impossible! 😅";
     const downtimePercentage = (100 - percentage);
@@ -89,4 +92,5 @@ export function Step2SRE({formData, updateField, errors}){
     </div>
   );
 };
+
 

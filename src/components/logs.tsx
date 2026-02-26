@@ -1,4 +1,4 @@
-export function Step4Logs({ formData, updateField, errors, addLogsFilter, removeLogsFilter }) {
+export function Component({ formData, updateField, errors, addLogsFilter, removeLogsFilter }) {
   return (
     <div>
       <h3 style={{ marginBottom: '20px', color: '#1e293b' }}>Logs Configuration</h3>

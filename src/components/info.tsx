@@ -1,4 +1,13 @@
-export function Step1Basics({ formData, updateField, errors }){
+import{ createContext, useState, useContext } from 'react';
+
+export const DefaultValues = {
+  name: "",
+  description: "",
+};
+
+export const Context = createContext(DefaultValues);
+
+export function Component({errors}){
   return (
     <div>
       <h3 style={{ marginBottom: '20px', color: '#1e293b' }}>Dashboard Basics</h3>
@@ -16,8 +25,8 @@ export function Step1Basics({ formData, updateField, errors }){
           type="text"
           className={`form-input ${errors.dashboardName ? 'error' : ''}`}
           placeholder="e.g., Customers Order and Availability"
-          value={formData.dashboardName}
-          onChange={(e) => updateField('dashboardName', e.target.value)}
+          value={dashboardData.name}
+          onChange={(e) => setDashboardData({...dashboardData, name: e.target.value})}
         />
         {errors.dashboardName && <div className="form-error">⚠️ {errors.dashboardName}</div>}
       </div>
@@ -27,8 +36,8 @@ export function Step1Basics({ formData, updateField, errors }){
         <textarea
           className="form-textarea"
           placeholder="Optional: Describe what this dashboard monitors and what info people can find inside..."
-          value={formData.dashboardDescription}
-          onChange={(e) => updateField('dashboardDescription', e.target.value)}
+          value={dashboardData.description}
+          onChange={(e) =>  setDashboardData({...dashboardData, description: e.target.value})}
         />
       </div>
     </div>
