@@ -9,13 +9,13 @@
     "start": "NODE_ENV=production bun src/index.ts"
   },
   "dependencies": {
-    "@grafana/grafana-foundation-sdk": "^11.6.0-cogv0.0.x.1753977659",
+    "@grafana/grafana-foundation-sdk": "^11.6.0-cogv0.0.x.1769699379",
     "moment": "^2.30.1",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
-    "@types/react": "^19.2.7",
+    "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/bun": "latest"
   }
