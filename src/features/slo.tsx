@@ -15,7 +15,7 @@ export const FeatureID = "slo";
 export const FeatureName = "Service Level Objective";
 
 
-export function Component({ goBack, goForward, onPanelUpdate }:{ onSubmit:Function }){
+export function Component({ goBack, goForward, givePanel }){
   const [errors, setErrors] = useState({
     target: "",
     metrics: {},
@@ -89,7 +89,7 @@ export function Component({ goBack, goForward, onPanelUpdate }:{ onSubmit:Functi
       console.log("Not valid");
       return
     };
-    onPanelUpdate(genPanels());
+    givePanel(genPanels());
     goForward();
   }
 
