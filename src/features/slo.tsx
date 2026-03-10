@@ -18,17 +18,15 @@ export const FeatureName = "Service Level Objective";
 export function Component({ goBack, goForward, onPanelUpdate }:{ onSubmit:Function }){
   const [errors, setErrors] = useState({
     target: "",
+    metrics: {},
   });
 
-  const [formData, setFormData] = useState({
-    enabled: false,
-    metrics: [],
-    target: 99.5,
-  });
+  const [formData, setFormData] = useState({target: 99.5});
+  const [metrics, setMetrics] = useState([]);
 
   const genPanels = () => {
-    const panelSpan = 24 / formData.metrics.length
-    return formData.metrics.map(
+    const panelSpan = 24 / metrics.length
+    return metrics.map(
       (metric) => new StatusHistoryPanelBuilder()
         .title(metric.name)
         .height(8)
@@ -69,19 +67,39 @@ export function Component({ goBack, goForward, onPanelUpdate }:{ onSubmit:Functi
 
   const validate = () => {
     const newErrors = {};
-    if (formData.enabled && (formData.target <= 0 || formData.target > 100)) {
+    if (formData.target <= 0 || formData.target > 100) {
       newErrors.target = 'SLI target must be between 0 and 100';
     }
+
+    metrics.forEach((metric, idx) => {
+      if (metric.name.length == 0) {
+        newErrors[`metric_${idx}_name`] =  "The name is missing"
+      }
+      if (metric.query.length == 0) {
+        newErrors[`metric_${idx}_query`] =  "The query is missing"
+      }
+    });
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0
   }
 
   const onSubmit = () => {
-    if (!validate()) return
-
+    if (!validate()) {
+      console.log("Not valid");
+      return
+    };
     onPanelUpdate(genPanels());
     goForward();
   }
+
+  const removeMetric = (idx) => setMetrics(metrics.filter((_, i) => i !== idx));
+  const addMetric = () => setMetrics([...metrics, { name: '', query: '', querySuccess: '', queryErrors: '' }])
+  const updateMetric = (idx, field, value) => {
+    let newMetrics = [...metrics]
+    newMetrics[idx] = {...metrics[idx], [field]: value };
+    setMetrics(newMetrics);
+  };
 
   return (
     <>
@@ -110,7 +128,7 @@ export function Component({ goBack, goForward, onPanelUpdate }:{ onSubmit:Functi
           <div className="form-hint">Enter your target availability percentage (e.g., 99.9 for three nines)</div>
         </div>
 
-        {formData.target && !isNaN(formData.target) && formData.target > 0 && formData.target <= 100 && (
+        {!isNaN(formData.target) && formData.target > 0 && formData.target <= 100 && (
           <div className="calculation-box">
             <div style={{marginBottom: 'var(--spacing-md)', fontWeight: '600', color: 'var(--color-text-primary)'}}>
               Your Error Budget with {formData.target}% availability:
@@ -134,15 +152,68 @@ export function Component({ goBack, goForward, onPanelUpdate }:{ onSubmit:Functi
             </div>
           </div>
         )}
+
+        {metrics && metrics.map((metric, idx) => (
+          <div key={idx} className="metric-card">
+            <div className="metric-header">
+              {metrics.length > 1 && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '4px 12px', fontSize: '12px' }}
+                  onClick={() => removeMetric(idx)}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">What is this measuring? *</label>
+              <input
+                type="text"
+                className={`form-input ${errors[`metric_${idx}_name`] ? 'error' : ''}`}
+                placeholder="e.g., Checkout Orders Status, Server Requests latency, Error Rate, CPU Usage..."
+                value={metric.name}
+                onChange={(e) => updateMetric(idx, 'name', e.target.value)}
+              />
+              {errors[`metric_${idx}_name`] && <div className="form-error">⚠️ {errors[`metric_${idx}_name`]}</div>}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">PromQL Query *</label>
+              <textarea
+                className={`form-textarea ${errors[`metric_${idx}_query`] ? 'error' : ''}`}
+                placeholder="e.g., sum(rate(metric_name[5m]))"
+                value={metric.query}
+                onChange={(e) => updateMetric(idx, 'query', e.target.value)}
+                style={{ minHeight: '70px' }}
+              />
+              {errors[`metric_${idx}_query`] && <div className="form-error">⚠️ {errors[`metric_${idx}_query`]}</div>}
+            </div>
+          </div>
+        ))}
+
+        {metrics && metrics.length < 3 && (
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={addMetric}
+            style={{ width: '100%' }}
+          >
+            + Add Metric
+          </button>
+        )}
+
       </div>
 
       <div className="wizard-footer">
-        <button className="btn btn-secondary" onClick={goBack}>
+        {goBack && <button className="btn btn-secondary" onClick={goBack}>
           ← Previous
-        </button>
-        <button className="btn btn-primary" onClick={onSubmit}>
+        </button>}
+        {goForward && <button className="btn btn-primary" onClick={onSubmit}>
           Next →
-        </button>
+        </button>}
       </div>
     </>
   );
