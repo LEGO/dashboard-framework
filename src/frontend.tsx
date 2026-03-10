@@ -1,13 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { Wizard } from "./Wizard.tsx";
+import { DashboardGenerator } from "./Wizard.tsx";
 import "./index.css";
 
 const elem = document.getElementById("root")!;
 const app = (
   <StrictMode>
     <div className="app">
-      <Wizard/>
+      <DashboardGenerator />
     </div>
   </StrictMode>
 );

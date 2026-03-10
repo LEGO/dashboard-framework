@@ -10,7 +10,7 @@ export function DashboardGenerator() {
       </div>
 
       <div className="wizard-content">
-        <SLOFeatureComponent onPanelUpdate={console.log}/>
+        <SLOFeatureComponent onPanelUpdate={console.log} goForward={console.log}/>
       </div>
     </div>
   );
