@@ -1,8 +1,12 @@
-import{ useState } from 'react';
+import { useState } from 'react';
+
+import { usePersistentState } from "./lib/usePersistentState.ts";
 
 import IntroComponent from "./components/intro.tsx";
 import InfoComponent from "./components/info.tsx";
 import FeaturesComponent from "./components/features.tsx";
+import OutputComponent from "./components/output.tsx";
+
 import * as FeatureSLO from "./features/slo.tsx";
 // import * as FeatureNovus from "./features/novus.tsx";
 // import * as FeatureLogs from "./features/logs.tsx";
@@ -24,6 +28,7 @@ const DEFAULT_DASHBOARD_DATA = {
   description: "",
   features: FEATURES.map((feat) => ({
       enabled: false,
+      id: feat.FeatureID,
       name: feat.FeatureName,
       component: feat.Component,
       panels: [],
@@ -35,12 +40,13 @@ export function DashboardGenerator() {
   const [stepIndx, setStepIndx] = useState(0);
   const [dashboardData, setDashboardData] = useState(DEFAULT_DASHBOARD_DATA);
 
-  console.log(dashboardData.features);
   const steps = DEFAULT_STEPS.concat(
     dashboardData.features
       .filter((feat) => feat.enabled)
       .map((feat) => feat.component)
-  );
+  ).filter((step) => step !== undefined);
+
+  console.log(steps);
 
   const goForward = () => {
     let next = stepIndx+1;
@@ -57,13 +63,23 @@ export function DashboardGenerator() {
   };
 
   const setDashboardPanels = (featId, newPanels) => {
-    let newFeatures = dashboardData.features;
-    newFeatures[featId] = {...dashboardData.features[featId], panels: newPanels};
+    let newFeatures = dashboardData.features.map((feat, i) => {
+      if (feat.id == featId) {
+        return {...dashboardData.features[i], panels: newPanels}
+      }
+      return feat
+    });
     setDashboardData({...dashboardData, features: newFeatures});
   }
 
   const getCurrentComponent = () => {
-    let Component = steps[stepIndx];
+    let Component = null;
+    // If it is the last step
+    if (stepIndx == steps.length) {
+      Component = OutputComponent;
+    } else {
+      Component = steps[stepIndx];
+    }
     return <Component
       dashboardData={dashboardData}
       setDashboardData={setDashboardData}

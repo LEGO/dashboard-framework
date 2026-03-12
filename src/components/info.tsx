@@ -1,4 +1,5 @@
-import{ useState } from 'react';
+import { useState } from 'react';
+import { usePersistentState  } from '../lib/usePersistentState.ts';
 
 export default function Component({ dashboardData, goBack, goForward, setDashboardData }){
   const [errors, setErrors] = useState({
@@ -6,7 +7,7 @@ export default function Component({ dashboardData, goBack, goForward, setDashboa
     description: "",
   });
 
-  const [dashboardInfo, setDashboardInfo] = useState({
+  const [dashboardInfo, setDashboardInfo] = usePersistentState("info", {
     name: "",
     description: "",
   });

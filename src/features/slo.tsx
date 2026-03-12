@@ -1,6 +1,8 @@
 import moment from 'moment';
 import { useState } from 'react';
 
+import { usePersistentState } from '../lib/usePersistentState.ts';
+
 import {
   ThresholdsConfigBuilder,
   ThresholdsMode,
@@ -20,8 +22,8 @@ export function Component({ goBack, goForward, setDashboardPanels}){
     metrics: {},
   });
 
-  const [formData, setFormData] = useState({target: 99.5});
-  const [metrics, setMetrics] = useState([]);
+  const [formData, setFormData] = usePersistentState("feat_slo_formData", {target: 99.5});
+  const [metrics, setMetrics] = usePersistentState("feat_slo_metrics", []);
 
   const genPanels = () => {
     const panelSpan = 24 / metrics.length
@@ -46,7 +48,7 @@ export function Component({ goBack, goForward, setDashboardPanels}){
         .withTarget(
           new PrometheusDataqueryBuilder()
             .datasource({ uid: "$prometheus" })
-            .expr(`(${metric.querySuccess})/((${metric.queryErrors})+(${metric.querySuccess}))`)
+            .expr(`(${metric.queryGood})/(${metric.queryValid})`)
           )
         );
   };
@@ -74,8 +76,11 @@ export function Component({ goBack, goForward, setDashboardPanels}){
       if (metric.name.length == 0) {
         newErrors[`metric_${idx}_name`] =  "The name is missing"
       }
-      if (metric.query.length == 0) {
-        newErrors[`metric_${idx}_query`] =  "The query is missing"
+      if (metric.queryGood.length == 0) {
+        newErrors[`metric_${idx}_queryGood`] =  "The promql query is missing"
+      }
+      if (metric.queryValid.length == 0) {
+        newErrors[`metric_${idx}_queryValid`] =  "The promql query is missing"
       }
     });
 
@@ -93,7 +98,7 @@ export function Component({ goBack, goForward, setDashboardPanels}){
   }
 
   const removeMetric = (idx) => setMetrics(metrics.filter((_, i) => i !== idx));
-  const addMetric = () => setMetrics([...metrics, { name: '', query: '', querySuccess: '', queryErrors: '' }])
+  const addMetric = () => setMetrics([...metrics, { name: '', queryGood: '', queryValid: ''}])
   const updateMetric = (idx, field, value) => {
     let newMetrics = [...metrics]
     newMetrics[idx] = {...metrics[idx], [field]: value };
@@ -168,7 +173,7 @@ export function Component({ goBack, goForward, setDashboardPanels}){
             </div>
 
             <div className="form-group">
-              <label className="form-label">What is this measuring? *</label>
+              <label className="form-label">What is this SLI measuring? *</label>
               <input
                 type="text"
                 className={`form-input ${errors[`metric_${idx}_name`] ? 'error' : ''}`}
@@ -180,15 +185,26 @@ export function Component({ goBack, goForward, setDashboardPanels}){
             </div>
 
             <div className="form-group">
-              <label className="form-label">PromQL Query *</label>
+              <label className="form-label">PromQL Query for Good Events count *</label>
               <textarea
-                className={`form-textarea ${errors[`metric_${idx}_query`] ? 'error' : ''}`}
-                placeholder="e.g., sum(rate(metric_name[5m]))"
-                value={metric.query}
-                onChange={(e) => updateMetric(idx, 'query', e.target.value)}
+                className={`form-textarea ${errors[`metric_${idx}_queryGood`] ? 'error' : ''}`}
+                placeholder='e.g., sum( rate( http_server_response_size{ http_status_code=~"2.*" }[15m] ) )'
+                value={metric.queryGood}
+                onChange={(e) => updateMetric(idx, 'queryGood', e.target.value)}
                 style={{ minHeight: '70px' }}
               />
-              {errors[`metric_${idx}_query`] && <div className="form-error">⚠️ {errors[`metric_${idx}_query`]}</div>}
+              {errors[`metric_${idx}_queryGood`] && <div className="form-error">⚠️ {errors[`metric_${idx}_queryGood`]}</div>}
+            </div>
+            <div className="form-group">
+              <label className="form-label">PromQL Query for Valid Events count *</label>
+              <textarea
+                className={`form-textarea ${errors[`metric_${idx}_queryValid`] ? 'error' : ''}`}
+                placeholder='e.g., sum( rate( http_server_response_size{}[15m] ) )'
+                value={metric.queryValid}
+                onChange={(e) => updateMetric(idx, 'queryValid', e.target.value)}
+                style={{ minHeight: '70px' }}
+              />
+              {errors[`metric_${idx}_queryValid`] && <div className="form-error">⚠️ {errors[`metric_${idx}_queryValid`]}</div>}
             </div>
           </div>
         ))}
