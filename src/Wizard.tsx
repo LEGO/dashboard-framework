@@ -27,7 +27,6 @@ export function DashboardGenerator() {
     name: "",
     description: "",
     features: {},
-    panels: [],
   });
 
   let newSteps = DEFAULT_STEPS;
@@ -68,19 +67,21 @@ export function DashboardGenerator() {
     setStepIndx(prev)
   };
 
-  const appendPanels = (newPanels: Array<any>) => {
-    setDashboardData({...dashboardData, panels: dashboardData.panels.concat(newPanels)});
+  const setPanels = (featId, newPanels) => {
+    let newFeatures = dashboardData.features;
+    newFeatures[featId] = {...dashboardData.features[featId], panels: newPanels};
+    setDashboardData({...dashboardData, features: newFeatures});
   }
 
   console.log("step", stepIndx);
-  console.log("data", dashboardData);
+  console.log("features", dashboardData.features);
 
   const getCurrentComponent = () => {
     let Component = steps[stepIndx];
     return <Component
       dashboardData={dashboardData}
       setDashboardData={setDashboardData}
-      appendPanels={appendPanels}
+      setPanels={setPanels}
       goForward={stepIndx == steps.length ? null : goForward}
       goBack={stepIndx == 0 ? null : goBack}
     />
