@@ -1,12 +1,12 @@
-export default function Component({ dashboardData, goBack, goForward, setDashboardData }){
+export default function Component({ goBack, goForward, dashboardData, setDashboardData }){
 
   const toggleFeature = (featId, feat) => {
     feat.enabled = !feat.enabled;
-    let newFeatures = {...dashboardData.features}
+    let newFeatures = [...dashboardData.features]
     newFeatures[featId] = feat
     setDashboardData({...dashboardData, features: newFeatures})
   }
-  
+
   return (
     <>
       <div className="wizard-content">

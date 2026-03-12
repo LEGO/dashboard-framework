@@ -19,45 +19,34 @@ const DEFAULT_STEPS = [
   FeaturesComponent,
 ];
 
+const DEFAULT_DASHBOARD_DATA = {
+  name: "",
+  description: "",
+  features: FEATURES.map((feat) => ({
+      enabled: false,
+      name: feat.FeatureName,
+      component: feat.Component,
+      panels: [],
+    }))
+};
+
+
 export function DashboardGenerator() {
   const [stepIndx, setStepIndx] = useState(0);
-  const [steps, setSteps] = useState(DEFAULT_STEPS);
+  const [dashboardData, setDashboardData] = useState(DEFAULT_DASHBOARD_DATA);
 
-  const [dashboardData, setDashboardData] = useState({
-    name: "",
-    description: "",
-    features: {},
-  });
-
-  let newSteps = DEFAULT_STEPS;
-  FEATURES.forEach(
-    feat => {
-      // pre-populate the features based
-      if(!(feat.FeatureID in dashboardData.features)) {
-        let newFeatureSetup = {...dashboardData.features}
-        newFeatureSetup[feat.FeatureID] = {
-          enabled: false,
-          name: feat.FeatureName,
-          panels: [],
-        };
-        setDashboardData({...dashboardData, features: newFeatureSetup});
-      } else {
-        // If a feature was added, append the component
-        if(dashboardData.features[feat.FeatureID].enabled) {
-          newSteps.push(feat.Component);
-        }
-      }
-    }
-  )
-
-  // Update only if it has changed... meh, there might be a better way
-  if(steps != newSteps){
-    setSteps(newSteps)
-  }
+  console.log(dashboardData.features);
+  const steps = DEFAULT_STEPS.concat(
+    dashboardData.features
+      .filter((feat) => feat.enabled)
+      .map((feat) => feat.component)
+  );
 
   const goForward = () => {
     let next = stepIndx+1;
-    if(next > steps.length) next = 0;
+    if(next > steps.length) {
+      next = 0;
+    };
     setStepIndx(next)
   };
 
@@ -67,21 +56,19 @@ export function DashboardGenerator() {
     setStepIndx(prev)
   };
 
-  const setPanels = (featId, newPanels) => {
+  const setDashboardPanels = (featId, newPanels) => {
     let newFeatures = dashboardData.features;
     newFeatures[featId] = {...dashboardData.features[featId], panels: newPanels};
     setDashboardData({...dashboardData, features: newFeatures});
   }
-
-  console.log("step", stepIndx);
-  console.log("features", dashboardData.features);
 
   const getCurrentComponent = () => {
     let Component = steps[stepIndx];
     return <Component
       dashboardData={dashboardData}
       setDashboardData={setDashboardData}
-      setPanels={setPanels}
+      setDashboardPanels={setDashboardPanels}
+
       goForward={stepIndx == steps.length ? null : goForward}
       goBack={stepIndx == 0 ? null : goBack}
     />
