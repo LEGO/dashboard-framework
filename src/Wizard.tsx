@@ -2,7 +2,13 @@ import{ useState } from 'react';
 
 import { Component as InfoComponent } from "./components/info.tsx";
 import * as FeatureSLO from "./features/slo.tsx";
+// import * as FeatureNovus from "./features/novus.tsx";
+// import * as FeatureLogs from "./features/logs.tsx";
+// import * as FeatureCustomMetrics from "./features/custom_metrics.tsx";
 
+const enabledFeatures = [
+  FeatureSLO,
+];
 
 export function DashboardGenerator() {
   const [step, setStep] = useState(0);
@@ -10,9 +16,19 @@ export function DashboardGenerator() {
   const [dashboardData, setDashboardData] = useState({
     name: "",
     description: "",
-    features: [],
+    features: {},
     panels: [],
   });
+
+  enabledFeatures.forEach(
+    feat => {
+      if(dashboardData.features[feat.FeatureID] === undefined) {
+        let newFeatureSetup = {...dashboardData.features}
+        newFeatureSetup[feat.FeatureID] = {enabled: false, name: feat.Name};
+        setDashboardData({...dashboardData, features: newFeatureSetup});
+      }
+    }
+  )
 
   const goForward = () => {
     let next = step+1;
@@ -26,13 +42,14 @@ export function DashboardGenerator() {
 
     setStep(prev)
   };
+  console.log(dashboardData);
 
   const getCurrentComponent = () => {
     switch(step) {
       case 0:
-        return <InfoComponent giveData={console.log} goForward={goForward} />
+        return <InfoComponent dashboardData={dashboardData} setDashboardData={setDashboardData} goForward={goForward} />
       case 1:
-        return <FeatureSLO.Component goBack={goBack} goForward={goForward} />
+        return <FeatureSLO.Component dashboardData={dashboardData} setDashboardData={setDashboardData} goBack={goBack} goForward={goForward} />
     }
   }
 

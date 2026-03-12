@@ -1,23 +1,32 @@
 import{ useState } from 'react';
 
-export function Component({ goBack, goForward, giveData }){
+export function Component({ dashboardData, goBack, goForward, setDashboardData }){
   const [errors, setErrors] = useState({
     name: "",
     description: "",
   });
 
-  const [dashboardData, setDashboardData] = useState({
+  const [dashboardInfo, setDashboardInfo] = useState({
     name: "",
     description: "",
   });
 
+  // Reload data from the global state
+  if (!dashboardInfo.name) {
+    dashboardInfo.name = dashboardData.name;
+  }
+
+  if (!dashboardInfo.description) {
+    dashboardInfo.description = dashboardData.description;
+  }
+
   const validate = () => {
     const newErrors = {};
-    if (dashboardData.name.length < 3) {
+    if (dashboardInfo.name.length < 3) {
       newErrors.name = 'Consider a human readable, longer name (3 letters min)';
     }
 
-    if (dashboardData.description.length < 20) {
+    if (dashboardInfo.description.length < 20) {
       newErrors.description = 'Consider a human readable, longer description (20 letters min)';
     }
 
@@ -27,10 +36,9 @@ export function Component({ goBack, goForward, giveData }){
 
   const onSubmit = () => {
     if (!validate()) return;
-    giveData({...dashboardData});
+    setDashboardData({...dashboardData, ...dashboardInfo});
     goForward();
   }
-
 
   return (
     <>
@@ -50,8 +58,8 @@ export function Component({ goBack, goForward, giveData }){
             type="text"
             className={`form-input ${errors.name ? 'error' : ''}`}
             placeholder="e.g., Customers Order and Availability"
-            value={dashboardData.name}
-            onChange={(e) => setDashboardData({...dashboardData, name: e.target.value})}
+            value={dashboardInfo.name}
+            onChange={(e) => setDashboardInfo({...dashboardInfo, name: e.target.value})}
           />
           {errors.name && <div className="form-error">⚠️ {errors.name}</div>}
         </div>
@@ -61,8 +69,8 @@ export function Component({ goBack, goForward, giveData }){
           <textarea
             className={`form-input ${errors.description ? 'error' : ''}`}
             placeholder="Optional: Describe what this dashboard monitors and what info people can find inside..."
-            value={dashboardData.description}
-            onChange={(e) =>  setDashboardData({...dashboardData, description: e.target.value})}
+            value={dashboardInfo.description}
+            onChange={(e) =>  setDashboardInfo({...dashboardInfo, description: e.target.value})}
           />
           {errors.description && <div className="form-error">⚠️ {errors.description}</div>}
         </div>

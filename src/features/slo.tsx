@@ -14,7 +14,6 @@ import { AxisPlacement, VizLegendOptionsBuilder } from '@grafana/grafana-foundat
 export const FeatureID = "slo";
 export const FeatureName = "Service Level Objective";
 
-
 export function Component({ goBack, goForward, givePanel }){
   const [errors, setErrors] = useState({
     target: "",
