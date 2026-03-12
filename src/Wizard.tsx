@@ -1,17 +1,27 @@
 import{ useState } from 'react';
 
-import { Component as InfoComponent } from "./components/info.tsx";
+import IntroComponent from "./components/intro.tsx";
+import InfoComponent from "./components/info.tsx";
+import FeaturesComponent from "./components/features.tsx";
 import * as FeatureSLO from "./features/slo.tsx";
 // import * as FeatureNovus from "./features/novus.tsx";
 // import * as FeatureLogs from "./features/logs.tsx";
 // import * as FeatureCustomMetrics from "./features/custom_metrics.tsx";
 
-const enabledFeatures = [
+// Hard coded list of features that the users can tunr on/off
+const FEATURES = [
   FeatureSLO,
 ];
 
+const DEFAULT_STEPS = [
+  IntroComponent,
+  InfoComponent,
+  FeaturesComponent,
+];
+
 export function DashboardGenerator() {
-  const [step, setStep] = useState(0);
+  const [stepIndx, setStepIndx] = useState(0);
+  const [steps, setSteps] = useState(DEFAULT_STEPS);
 
   const [dashboardData, setDashboardData] = useState({
     name: "",
@@ -20,37 +30,60 @@ export function DashboardGenerator() {
     panels: [],
   });
 
-  enabledFeatures.forEach(
+  let newSteps = DEFAULT_STEPS;
+  FEATURES.forEach(
     feat => {
-      if(dashboardData.features[feat.FeatureID] === undefined) {
+      // pre-populate the features based
+      if(!(feat.FeatureID in dashboardData.features)) {
         let newFeatureSetup = {...dashboardData.features}
-        newFeatureSetup[feat.FeatureID] = {enabled: false, name: feat.Name};
+        newFeatureSetup[feat.FeatureID] = {
+          enabled: false,
+          name: feat.FeatureName,
+          panels: [],
+        };
         setDashboardData({...dashboardData, features: newFeatureSetup});
+      } else {
+        // If a feature was added, append the component
+        if(dashboardData.features[feat.FeatureID].enabled) {
+          newSteps.push(feat.Component);
+        }
       }
     }
   )
 
+  // Update only if it has changed... meh, there might be a better way
+  if(steps != newSteps){
+    setSteps(newSteps)
+  }
+
   const goForward = () => {
-    let next = step+1;
-    if(next > 1)  next = 1;
-    setStep(next )
+    let next = stepIndx+1;
+    if(next > steps.length) next = 0;
+    setStepIndx(next)
   };
 
   const goBack = () => {
-    let prev = step-1;
-    if(prev < 0)  prev  = 0;
-
-    setStep(prev)
+    let prev = stepIndx-1;
+    if(prev < 0) prev  = 0;
+    setStepIndx(prev)
   };
-  console.log(dashboardData);
+
+  const appendPanels = (newPanels: Array<any>) => {
+    setDashboardData({...dashboardData, panels: dashboardData.panels.concat(newPanels)});
+  }
+
+  console.log("step", stepIndx);
+  console.log("data", dashboardData);
 
   const getCurrentComponent = () => {
-    switch(step) {
-      case 0:
-        return <InfoComponent dashboardData={dashboardData} setDashboardData={setDashboardData} goForward={goForward} />
-      case 1:
-        return <FeatureSLO.Component dashboardData={dashboardData} setDashboardData={setDashboardData} goBack={goBack} goForward={goForward} />
-    }
+    let Component = steps[stepIndx];
+    return <Component
+      dashboardData={dashboardData}
+      setDashboardData={setDashboardData}
+      appendPanels={appendPanels}
+      goForward={stepIndx == steps.length ? null : goForward}
+      goBack={stepIndx == 0 ? null : goBack}
+    />
   }
 
   return (

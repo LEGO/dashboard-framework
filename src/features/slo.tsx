@@ -14,7 +14,7 @@ import { AxisPlacement, VizLegendOptionsBuilder } from '@grafana/grafana-foundat
 export const FeatureID = "slo";
 export const FeatureName = "Service Level Objective";
 
-export function Component({ goBack, goForward, givePanel }){
+export function Component({ goBack, goForward, appendPanels}){
   const [errors, setErrors] = useState({
     target: "",
     metrics: {},
@@ -88,7 +88,7 @@ export function Component({ goBack, goForward, givePanel }){
       console.log("Not valid");
       return
     };
-    givePanel(genPanels());
+    appendPanels(genPanels());
     goForward();
   }
 

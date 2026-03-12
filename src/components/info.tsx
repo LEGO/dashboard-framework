@@ -1,6 +1,6 @@
 import{ useState } from 'react';
 
-export function Component({ dashboardData, goBack, goForward, setDashboardData }){
+export default function Component({ dashboardData, goBack, goForward, setDashboardData }){
   const [errors, setErrors] = useState({
     name: "",
     description: "",

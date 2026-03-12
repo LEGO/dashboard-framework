@@ -1,4 +1,11 @@
-export function Component({ dashboardData, goBack, goForward, setDashboardData }){
+export default function Component({ dashboardData, goBack, goForward, setDashboardData }){
+
+  const toggleFeature = (featId, feat) => {
+    feat.enabled = !feat.enabled;
+    let newFeatures = {...dashboardData.features}
+    newFeatures[featId] = feat
+    setDashboardData({...dashboardData, features: newFeatures})
+  }
   
   return (
     <>
@@ -11,7 +18,10 @@ export function Component({ dashboardData, goBack, goForward, setDashboardData }
         </p>
 
         {
-          dashboardData.features.map(renderFeatureToggle)
+          Object.keys(dashboardData.features).map(k => {
+            let feat = dashboardData.features[k];
+            return renderFeatureToggle(k, feat, toggleFeature);
+          })
         }
       </div>
 
@@ -27,22 +37,21 @@ export function Component({ dashboardData, goBack, goForward, setDashboardData }
   );
 };
 
-function renderFeatureToggle(feat){
+function renderFeatureToggle(featId, feat, toggleFeature){
   return (
     <div className="form-group">
-        <label style={{display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer'}}>
-          <div className="toggle-switch">
-            <input
-              type="checkbox"
-              checked={feat.enabled}
-              onChange={(e) => toggleFeature({...feat, enable: e.target.checked})}
-            />
-            <span className="toggle-slider"></span>
-          </div>
-          <span style={{fontWeight: '500'}}>{feat.name}</span>
-        </label>
-        <div className="form-hint"></div>
-      </div>
-
+      <label style={{display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer'}}>
+        <div className="toggle-switch">
+          <input
+            type="checkbox"
+            checked={feat.enabled}
+            onChange={_ => toggleFeature(featId, feat)}
+          />
+          <span className="toggle-slider"></span>
+        </div>
+        <span style={{fontWeight: '500'}}>{feat.name}</span>
+      </label>
+      <div className="form-hint"></div>
+    </div>
   )
 }
