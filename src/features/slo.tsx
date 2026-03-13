@@ -89,10 +89,7 @@ export function Component({ goBack, goForward, setDashboardPanels}){
   }
 
   const onSubmit = () => {
-    if (!validate()) {
-      console.log("Not valid");
-      return
-    };
+    if (!validate()) return;
     setDashboardPanels(FeatureID, genPanels());
     goForward();
   }
