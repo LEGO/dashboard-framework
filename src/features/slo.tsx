@@ -32,7 +32,7 @@ export function Component({ goBack, goForward, setDashboardPanels}){
         .title(metric.name)
         .height(8)
         .span(panelSpan)
-        .interval("1h")
+        .interval("1m")
         .thresholds(
           new ThresholdsConfigBuilder()
             .mode(ThresholdsMode.Percentage)

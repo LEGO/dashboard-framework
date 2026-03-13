@@ -37,7 +37,9 @@ export default function Component({ goBack, goForward, dashboardData }) {
 
     // Extratc panels from the features
     dashboardData.features.forEach((feat) => {
-      dashboard = dashboard.withRow(new RowBuilder(feat.name))
+      if (!feat.enabled) return;
+
+      dashboard = dashboard.withRow(new RowBuilder(feat.name));
       feat.panels.forEach((panel) => {
         dashboard = dashboard.withPanel(panel);
       })

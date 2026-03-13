@@ -89,6 +89,7 @@ export function Component({ goBack, goForward, setDashboardPanels }){
           <div className="form-hint">Enable if your logs are structured as JSON</div>
         </div>
       </div>
+
       <div className="wizard-footer">
         {goBack && <button className="btn btn-secondary" onClick={goBack}>
           ← Previous

@@ -39,7 +39,7 @@ export default function Component({ goBack, goForward, dashboardData, setDashboa
 
 function renderFeatureToggle(featId, feat, toggleFeature){
   return (
-    <div className="form-group">
+    <div key={featId} className="form-group">
       <label style={{display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer'}}>
         <div className="toggle-switch">
           <input
