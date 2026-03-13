@@ -27,7 +27,6 @@ export function Component({ goBack, goForward, setDashboardPanels }){
       .height(4)
       .interval("1m")
       .graphMode(BigValueGraphMode.Line)
-      .unit("percentunit")
       .withTarget(
         new LokiDataqueryBuilder()
           .datasource({ uid: "$loki" })

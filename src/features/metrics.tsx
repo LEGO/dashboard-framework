@@ -48,7 +48,7 @@ export function Component({ goBack, goForward, setDashboardPanels }){
 
   const onSubmit = () => {
     if (!validate()) return;
-    setDashboardPanels(FeatureID, genPanels());
+    setDashboardPanels(FeatureID, [], genPanels());
     goForward();
   }
 
