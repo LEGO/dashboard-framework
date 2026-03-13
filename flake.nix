@@ -41,9 +41,9 @@
           ];
 
           shellHook = ''
-            set -a
-            source <(${pkgs.sops}/bin/sops --decrypt ./.sops.env)
-            set +a
+            # set -a
+            # source <(${pkgs.sops}/bin/sops --decrypt ./.sops.env)
+            # set +a
           '';
         };
       }
