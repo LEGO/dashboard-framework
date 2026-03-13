@@ -19,7 +19,6 @@ export default function Component({ goBack, goForward, dashboardData }) {
         new TimePickerBuilder()
           .refreshIntervals(["1m", "5m", "15m", "30m", "1h", "6h", "1d", "7d"])
       )
-      .withRow(new RowBuilder('Overview'))
       .withVariable(
         new DatasourceVariableBuilder("prometheus")
           .label("Metrics Data source")
@@ -33,7 +32,24 @@ export default function Component({ goBack, goForward, dashboardData }) {
           .type("loki")
           .regex("(?!grafanacloud.+usage-insights|grafanacloud.+alert-state-history).+")
           .multi(false)
-      )
+      );
+
+    dashboard = dashboard.withRow(new RowBuilder("Overview"));
+
+    // Extract panells for the overview
+    const overviewPanels = dashboardData.features.map((feat) => {
+      if (!feat.enabled) return [];
+      return feat.overviewPanels
+    }).flat();
+
+    // max 6 panels per row in the overview
+    let overviewPanelsSpan = 24 / overviewPanels.length;
+    if(overviewPanelsSpan < 4) overviewPanelsSpan = 4;
+
+    overviewPanels.forEach((panel) => {
+      panel = panel.span(overviewPanelsSpan);
+      dashboard = dashboard.withPanel(panel);
+    });
 
     // Extratc panels from the features
     dashboardData.features.forEach((feat) => {
@@ -43,7 +59,7 @@ export default function Component({ goBack, goForward, dashboardData }) {
       feat.panels.forEach((panel) => {
         dashboard = dashboard.withPanel(panel);
       })
-    })
+    });
 
     return JSON.stringify(dashboard.build(), null, 2);
   };

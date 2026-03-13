@@ -1,8 +1,6 @@
 import moment from 'moment';
 import { useState } from 'react';
 
-import { usePersistentState } from '../lib/usePersistentState.ts';
-
 import {
   ThresholdsConfigBuilder,
   ThresholdsMode,
@@ -10,13 +8,15 @@ import {
 
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
 import { PanelBuilder as StatusHistoryPanelBuilder } from '@grafana/grafana-foundation-sdk/statushistory';
-import { AxisPlacement, VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
+import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
+import { AxisPlacement, BigValueGraphMode, VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
 
+import { usePersistentState } from '../lib/usePersistentState.ts';
 
 export const FeatureID = "slo";
 export const FeatureName = "Service Level Objective";
 
-export function Component({ goBack, goForward, setDashboardPanels}){
+export function Component({ goBack, goForward, setDashboardPanels }){
   const [errors, setErrors] = useState({
     target: "",
     metrics: {},
@@ -25,14 +25,39 @@ export function Component({ goBack, goForward, setDashboardPanels}){
   const [formData, setFormData] = usePersistentState("feat_slo_formData", {target: 99.5});
   const [metrics, setMetrics] = usePersistentState("feat_slo_metrics", []);
 
+  const genOverviewPanels = () => {
+    return metrics.map(
+      (metric) => new StatsPanelBuilder()
+        .title("SLI: " + metric.name)
+        .height(4)
+        .interval("5m")
+        .graphMode(BigValueGraphMode.Line)
+        .thresholds(
+          new ThresholdsConfigBuilder()
+            .mode(ThresholdsMode.Percentage)
+            .steps([
+              { value: (formData.target / 100), color: "red" },
+              { value: ((formData.target / 100) + 1) / 2, color: "orange" },
+              { value: 1, color: "green" },
+            ])
+        )
+        .unit("percentunit")
+        .withTarget(
+          new PrometheusDataqueryBuilder()
+            .datasource({ uid: "$prometheus" })
+            .expr(`(${metric.queryGood})/(${metric.queryValid})`)
+            .instant()
+          )
+        );
+  };
+
   const genPanels = () => {
-    const panelSpan = 24 / metrics.length
     return metrics.map(
       (metric) => new StatusHistoryPanelBuilder()
         .title(metric.name)
         .height(8)
-        .span(panelSpan)
-        .interval("1m")
+        .span(24)
+        .interval("5m")
         .thresholds(
           new ThresholdsConfigBuilder()
             .mode(ThresholdsMode.Percentage)
@@ -90,7 +115,7 @@ export function Component({ goBack, goForward, setDashboardPanels}){
 
   const onSubmit = () => {
     if (!validate()) return;
-    setDashboardPanels(FeatureID, genPanels());
+    setDashboardPanels(FeatureID, genOverviewPanels(), genPanels());
     goForward();
   }
 

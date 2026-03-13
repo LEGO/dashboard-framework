@@ -1,8 +1,10 @@
+import { useState } from 'react';
+
 import { DataqueryBuilder as LokiDataqueryBuilder } from '@grafana/grafana-foundation-sdk/loki';
 import { PanelBuilder as LogsPanelBuilder } from '@grafana/grafana-foundation-sdk/logs';
 import { LogsDedupStrategy } from '@grafana/grafana-foundation-sdk/common';
-
-import { useState } from 'react';
+import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
+import { BigValueGraphMode } from '@grafana/grafana-foundation-sdk/common';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
 
@@ -18,6 +20,22 @@ export function Component({ goBack, goForward, setDashboardPanels }){
     service_name: "",
     is_json: false,
   });
+
+  const genOverviewPanels = () => {
+    return [new StatsPanelBuilder()
+      .title("Log Errors: " + formData.service_name)
+      .height(4)
+      .interval("1m")
+      .graphMode(BigValueGraphMode.Line)
+      .unit("percentunit")
+      .withTarget(
+        new LokiDataqueryBuilder()
+          .datasource({ uid: "$loki" })
+          .expr(`sum(count_over_time({service_name="${formData.service_name}"} | json | __error__!="JSONParserErr" | detected_level="error" [$__auto] ))`)
+          .instant(true)
+        )
+      ];
+  };
 
   const genPanels = () => {
     return [
@@ -52,7 +70,7 @@ export function Component({ goBack, goForward, setDashboardPanels }){
 
   const onSubmit = () => {
     if (!validate()) return;
-    setDashboardPanels(FeatureID, genPanels());
+    setDashboardPanels(FeatureID, genOverviewPanels(), genPanels());
     goForward();
   }
 

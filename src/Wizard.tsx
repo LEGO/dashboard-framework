@@ -32,6 +32,7 @@ const DEFAULT_DASHBOARD_DATA = {
       id: feat.FeatureID,
       name: feat.FeatureName,
       component: feat.Component,
+      overviewPanels: [],
       panels: [],
     }))
 };
@@ -47,8 +48,6 @@ export function DashboardGenerator() {
       .map((feat) => feat.component)
   ).filter((step) => step !== undefined);
 
-  console.log(steps);
-
   const goForward = () => {
     let next = stepIndx+1;
     if(next > steps.length) {
@@ -63,10 +62,10 @@ export function DashboardGenerator() {
     setStepIndx(prev)
   };
 
-  const setDashboardPanels = (featId, newPanels) => {
+  const setDashboardPanels = (featId, newOverviewPanels, newPanels) => {
     let newFeatures = dashboardData.features.map((feat, i) => {
       if (feat.id == featId) {
-        return {...dashboardData.features[i], panels: newPanels}
+        return {...dashboardData.features[i], panels: newPanels, overviewPanels: newOverviewPanels}
       }
       return feat
     });
