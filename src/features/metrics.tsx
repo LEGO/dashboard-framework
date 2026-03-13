@@ -1,11 +1,6 @@
-import {
-  ThresholdsConfigBuilder,
-  ThresholdsMode,
-} from '@grafana/grafana-foundation-sdk/dashboard';
-
+import { PanelBuilder as TimeSeriesPanelBuilder } from '@grafana/grafana-foundation-sdk/timeseries';
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
-import { PanelBuilder as StatusHistoryPanelBuilder } from '@grafana/grafana-foundation-sdk/statushistory';
-import { AxisPlacement, VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
+import { VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
 
 import { useState } from 'react';
 
