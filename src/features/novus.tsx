@@ -5,7 +5,7 @@ import { PanelBuilder, ConstantVariableBuilder, AdHocVariableBuilder, VariableHi
 import { usePersistentState } from '../lib/usePersistentState.ts';
 
 export const FeatureID = "novus";
-export const FeatureName = "Novus (Kubernetes)";
+export const FeatureName = "Novus Runtime Information";
 
 // Boilerplate library panel definitions for Novus.
 // Replace UIDs with the actual library panel UIDs from your Grafana instance.

@@ -14,10 +14,10 @@ import * as FeatureNovus from "./features/novus.tsx";
 
 // Hard coded list of features that the users can tunr on/off
 const FEATURES = [
-  FeatureMetrics,
-  FeatureSLO,
-  FeatureLogs,
   FeatureNovus,
+  FeatureSLO,
+  FeatureMetrics,
+  FeatureLogs,
 ];
 
 const DEFAULT_STEPS = [
