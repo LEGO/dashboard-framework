@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { PanelBuilder } from '@grafana/grafana-foundation-sdk/dashboard';
+import { PanelBuilder, ConstantVariableBuilder, AdHocVariableBuilder, VariableHide } from '@grafana/grafana-foundation-sdk/dashboard';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
 
@@ -10,10 +10,10 @@ export const FeatureName = "Novus (Kubernetes)";
 // Boilerplate library panel definitions for Novus.
 // Replace UIDs with the actual library panel UIDs from your Grafana instance.
 const NOVUS_LIBRARY_PANELS = [
-  { name: "Novus - Runtime Overview",     uid: "novus-runtime-overview" },
-  { name: "Novus - Pod Status",           uid: "novus-pod-status" },
-  { name: "Novus - Resource Usage",       uid: "novus-resource-usage" },
-  { name: "Novus - Deployment History",   uid: "novus-deployment-history" },
+  { name: "Novus Deployment timeline", uid: "cffw1fuyo9x4wb" },
+  { name: "Novus CPU Usage", uid: "affw0w9ciuw3kf" },
+  { name: "Novus Memory Usage", uid: "affw0vxt0u03kd" },
+  { name: "Novus Policy Alerts", uid: "ffee6egctyio0e" },
 ];
 
 export function Component({ goBack, goForward, setDashboardPanels }) {
@@ -22,6 +22,23 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   const [formData, setFormData] = usePersistentState("feat_novus_formData", {
     runtime: "",
   });
+
+  const genVariables = () => {
+    const podFilter = new AdHocVariableBuilder("novus_pod_filter")
+      .hide(VariableHide.HideVariable)
+      .datasource({ uid: "$prometheus" })
+      .build();
+    podFilter.filters = [
+      { key: "pod", operator: "!~", value: "novus-.*" },
+    ];
+
+    return [
+      new ConstantVariableBuilder("namespace")
+        .label("Novus Runtime / namespace")
+        .value(formData.runtime),
+      { build: () => podFilter },
+    ];
+  };
 
   const genPanels = () => {
     return NOVUS_LIBRARY_PANELS.map((panel) =>
@@ -44,7 +61,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
 
   const onSubmit = () => {
     if (!validate()) return;
-    setDashboardPanels(FeatureID, [], genPanels());
+    setDashboardPanels(FeatureID, [], genPanels(), genVariables());
     goForward();
   };
 
