@@ -34,6 +34,14 @@ export default function Component({ goBack, goForward, dashboardData }) {
           .multi(false)
       );
 
+    // Inject variables contributed by enabled features
+    dashboardData.features.forEach((feat) => {
+      if (!feat.enabled) return;
+      feat.variables.forEach((variable) => {
+        dashboard = dashboard.withVariable(variable);
+      });
+    });
+
     dashboard = dashboard.withRow(new RowBuilder("Overview"));
 
     // Extract panells for the overview

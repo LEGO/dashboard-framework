@@ -36,6 +36,7 @@ const DEFAULT_DASHBOARD_DATA = {
       component: feat.Component,
       overviewPanels: [],
       panels: [],
+      variables: [],
     }))
 };
 
@@ -64,10 +65,10 @@ export function DashboardGenerator() {
     setStepIndx(prev)
   };
 
-  const setDashboardPanels = (featId, newOverviewPanels, newPanels) => {
+  const setDashboardPanels = (featId, newOverviewPanels, newPanels, newVariables = []) => {
     let newFeatures = dashboardData.features.map((feat, i) => {
       if (feat.id == featId) {
-        return {...dashboardData.features[i], panels: newPanels, overviewPanels: newOverviewPanels}
+        return {...dashboardData.features[i], panels: newPanels, overviewPanels: newOverviewPanels, variables: newVariables}
       }
       return feat
     });
