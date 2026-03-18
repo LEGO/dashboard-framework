@@ -10,12 +10,14 @@ import OutputComponent from "./components/output.tsx";
 import * as FeatureSLO from "./features/slo.tsx";
 import * as FeatureLogs from "./features/logs.tsx";
 import * as FeatureMetrics from "./features/metrics.tsx";
+import * as FeatureNovus from "./features/novus.tsx";
 
 // Hard coded list of features that the users can tunr on/off
 const FEATURES = [
   FeatureMetrics,
   FeatureSLO,
   FeatureLogs,
+  FeatureNovus,
 ];
 
 const DEFAULT_STEPS = [
