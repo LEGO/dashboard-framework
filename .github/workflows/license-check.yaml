@@ -16,6 +16,9 @@ jobs:
       - name: 'Checkout Repository'
         uses: actions/checkout@v4
 
+      - name: Generate package-lock.json for dependency scanning
+        run: npm install --package-lock-only --legacy-peer-deps
+
       - name: Submit JavaScript dependencies
         uses: advanced-security/component-detection-dependency-submission-action@v0.1.1
 
