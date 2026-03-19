@@ -25,9 +25,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Submit JavaScript dependencies
-        uses: advanced-security/npm-dependency-submission-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/component-detection-dependency-submission-action@v1
 
   dependency-review:
     runs-on: ubuntu-latest
