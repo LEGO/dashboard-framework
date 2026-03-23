@@ -1,6 +1,7 @@
 import { PanelBuilder as TimeSeriesPanelBuilder } from '@grafana/grafana-foundation-sdk/timeseries';
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
 import { VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
+import { PanelBuilder as TextPanelBuilder, TextMode } from '@grafana/grafana-foundation-sdk/text';
 
 import { useState } from 'react';
 
@@ -17,7 +18,21 @@ export function Component({ goBack, goForward, setDashboardPanels }){
 
   const genPanels = () => {
     const panelSpan = 24 / metrics.length
-    return metrics.map(
+    return [
+      new TextPanelBuilder()
+      .title("")
+      .transparent(true)
+      .mode(TextMode.HTML)
+      .span(24)
+      .height(3)
+      .content(`
+          <div style="height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; padding: 10px 35px; border-radius: 12px; text-align: center;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
+              <h2 style="margin: 0; font-size: 2em; font-weight: 700;">📈 Metrics</h2>
+            </div>
+          </div>
+        `)
+    ].concat(metrics.map(
       (metric) => new TimeSeriesPanelBuilder()
           .title(metric.name)
           .height(8)
@@ -28,7 +43,7 @@ export function Component({ goBack, goForward, setDashboardPanels }){
               .datasource({ uid: "$prometheus" })
               .expr(metric.query)
           )
-        );
+        ));
   };
 
   const validate = () => {
