@@ -37,7 +37,10 @@ const NOVUS_BANNER = new TextPanelBuilder()
   .content(`
     <div style="display: flex; height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; border-radius: 12px; align-items: center; text-align: center;">
       <div style="width: 100%;">
-        <h2 style="margin: 0; font-size: 2em; font-weight: 700;">Novus Telemetry</h2>
+        <h2 style="margin: 0; font-size: 2em; font-weight: 700;">
+          <img src="https://raw.githubusercontent.com/kubernetes/kubernetes/refs/heads/master/logo/logo.svg" style="height: 1em; width: auto;" alt="Kubernetes Logo">
+          Novus Telemetry
+        </h2>
         <p style="margin: 0; font-size: 1em; opacity: 0.95;">
          Telemetry data for workloads running in Novus, Kubernetes Container Platform 
         </p>
