@@ -27,7 +27,7 @@ const NOVUS_LIBRARY_PANELS = [
 ];
 
 // A banner aded before every other panel to introduce people to that specific
-// section 
+// section.
 const NOVUS_BANNER = new TextPanelBuilder()
   .title("")
   .transparent(true)
@@ -42,7 +42,7 @@ const NOVUS_BANNER = new TextPanelBuilder()
           Novus Telemetry
         </h2>
         <p style="margin: 0; font-size: 1em; opacity: 0.95;">
-         Telemetry data for workloads running in Novus, Kubernetes Container Platform 
+         Telemetry data for workloads running in Novus, Kubernetes Container Platform
         </p>
       </div>
     </div>

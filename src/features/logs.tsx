@@ -16,6 +16,20 @@ import { usePersistentState } from '../lib/usePersistentState.ts';
 export const FeatureID = "logs";
 export const FeatureName = "Logs";
 
+const ROW_BANNER = new TextPanelBuilder()
+  .title("")
+  .transparent(true)
+  .mode(TextMode.HTML)
+  .span(24)
+  .height(2)
+  .content(`
+    <div style="display: flex; height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; border-radius: 12px; align-items: center; text-align: center;">
+      <div style="width: 100%;">
+        <h2 style="margin: 0; font-size: 2em; font-weight: 700;">🪵 Logs</h2>
+      </div>
+    </div>
+  `)
+
 export function Component({ goBack, goForward, setDashboardPanels }){
   const [errors, setErrors] = useState({
     service_name: "",
@@ -42,20 +56,7 @@ export function Component({ goBack, goForward, setDashboardPanels }){
   };
 
   const genPanels = () => {
-    return [
-      new TextPanelBuilder()
-      .title("")
-      .transparent(true)
-      .mode(TextMode.HTML)
-      .span(24)
-      .height(2)
-      .content(`
-        <div style="display: flex; height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; border-radius: 12px; align-items: center; text-align: center;">
-          <div style="width: 100%;">
-            <h2 style="margin: 0; font-size: 2em; font-weight: 700;">🪵 Logs</h2>
-          </div>
-        </div>
-      `),
+    return [ROW_BANNER,
       new LogsPanelBuilder()
         .title("")
         .transparent(true)

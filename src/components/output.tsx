@@ -102,7 +102,7 @@ export default function Component({ goBack, goForward, dashboardData }) {
     navigator.clipboard.writeText(dashboardJson);
     alert('Dashboard JSON copied to clipboard!');
   }
-  
+
   const downloadDashboard = () => {
     const dashboardJson = generateGrafanaDashboard();
     const element = document.createElement('a');

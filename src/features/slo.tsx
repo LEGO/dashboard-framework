@@ -9,12 +9,26 @@ import {
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
 import { PanelBuilder as TimeSeriesPanelBuilder } from '@grafana/grafana-foundation-sdk/timeseries';
 import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
-import { AxisPlacement, BigValueGraphMode, GraphThresholdsStyleConfigBuilder, GraphThresholdsStyleMode, VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
+import { BigValueGraphMode, GraphThresholdsStyleConfigBuilder, GraphThresholdsStyleMode, VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
 
 export const FeatureID = "slo";
 export const FeatureName = "Service Level Objective";
+
+const ROW_BANNER = new TextPanelBuilder()
+  .title("")
+  .transparent(true)
+  .mode(TextMode.HTML)
+  .span(24)
+  .height(2)
+  .content(`
+    <div style="display: flex; height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; border-radius: 12px; align-items: center; text-align: center;">
+      <div style="width: 100%;">
+        <h2 style="margin: 0; font-size: 2em; font-weight: 700;">📈 Service Level Objectives</h2>
+      </div>
+    </div>
+  `)
 
 export function Component({ goBack, goForward, setDashboardPanels }){
   const [errors, setErrors] = useState({
@@ -54,7 +68,7 @@ export function Component({ goBack, goForward, setDashboardPanels }){
   };
 
   const genPanels = () => {
-    return metrics.map(
+    return [ROW_BANNER].concat(metrics.map(
       (metric) => new TimeSeriesPanelBuilder()
         .title(metric.name)
         .displayName("Service Level Indicator")
@@ -75,9 +89,9 @@ export function Component({ goBack, goForward, setDashboardPanels }){
             .datasource({ uid: "$prometheus" })
             .expr(`(${metric.queryGood})/(${metric.queryValid})`)
           )
-        );
+        ));
   };
-  
+
   const calculateDowntime = ( percentage, period ) => {
     if(percentage === 100) return "impossible! 😅";
     const downtimePercentage = (100 - percentage);
