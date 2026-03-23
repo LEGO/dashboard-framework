@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState } from "react";
+import { useAuth } from "react-oidc-context";
 
 import {
   PanelBuilder,
@@ -7,7 +8,7 @@ import {
   VariableHide,
   ThresholdsConfigBuilder,
   ThresholdsMode
-} from '@grafana/grafana-foundation-sdk/dashboard';
+} from "@grafana/grafana-foundation-sdk/dashboard";
 
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
 import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
@@ -17,8 +18,10 @@ import {
   TextMode
 } from '@grafana/grafana-foundation-sdk/text';
 
-import { usePersistentState } from '../lib/usePersistentState.ts';
+import { usePersistentState } from "../lib/usePersistentState.ts";
 import { TypeThresholdBuilder } from '@grafana/grafana-foundation-sdk/expr';
+
+import { queryPrometheus } from "../lib/prometheusQuerier.ts";
 
 export const FeatureID = "novus";
 export const FeatureName = "Novus Runtime Information";
@@ -57,6 +60,35 @@ const NOVUS_BANNER = new TextPanelBuilder()
 
 export function Component({ goBack, goForward, setDashboardPanels }) {
   const [errors, setErrors] = useState({});
+  const [runtimes, setRuntimes] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState("");
+  const auth = useAuth();
+
+  const getTeams = () => {
+    return queryPrometheus(
+      'group(kube_namespace_labels{label_novus_legogroup_io_namespace_type="managed-customer-runtime", label_novus_legogroup_io_team_name!=""}) by (label_novus_legogroup_io_team_name)',
+      auth?.user?.id_token,
+    ).then((result) => {
+      console.log("Prometheus response for teams:", result);
+      setTeams(
+        result.data.result.map(
+          (item: any) => item.metric.label_novus_legogroup_io_team_name,
+        ),
+      );
+    });
+  };
+
+  const getRuntimeNamespaces = (team?: string) => {
+    let query = `group(kube_namespace_labels{label_novus_legogroup_io_namespace_type="managed-customer-runtime"`;
+    if (team) {
+      query += `, label_novus_legogroup_io_team_name="${team}"`;
+    }
+    query += `}) by (namespace)`;
+    return queryPrometheus(query, auth?.user?.id_token).then((result) => {
+      setRuntimes(result.data.result.map((item: any) => item.metric.namespace));
+    });
+  };
 
   const [formData, setFormData] = usePersistentState("feat_novus_formData", {
     runtime: "",
@@ -76,7 +108,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
         .label("Novus Runtime / namespace")
         .value(formData.runtime),
       { build: () => podFilter },
-    ];
+          ];
   };
 
   const genOverviewPanels = () => {
@@ -116,7 +148,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             .expr(`sum(kube_pod_status_phase{phase=~"(Failed|Unknown|Pending)", namespace="$namespace"})`)
             .instant()
           )
-      ];
+    ];
   };
 
   const genPanels = () => {
@@ -147,22 +179,67 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   return (
     <>
       <div className="wizard-content">
-        <h3 style={{ marginBottom: '20px', color: '#1e293b' }}>Novus Configuration</h3>
-        <p style={{ color: '#64748b', marginBottom: '20px', fontSize: '14px' }}>
+        <h3 style={{ marginBottom: "20px", color: "#1e293b" }}>Novus Configuration</h3>
+        <p style={{ color: "#64748b", marginBottom: "20px", fontSize: "14px" }}>
           Novus is our internal Kubernetes platform. This feature adds pre-built
           library panels scoped to your runtime.
         </p>
 
         <div className="form-group">
+          <label className="form-label">Team (optional)</label>
+          <select
+            className={`form-input ${errors.team ? "error" : ""}`}
+            value={selectedTeam}
+            onClick={() => getTeams()}
+            onChange={(e) => {
+              setSelectedTeam(e.target.value);
+              getRuntimeNamespaces(e.target.value);
+            }}
+          >
+            <option value="">All Teams</option>
+            {teams.map((team) => (
+              <option key={team} value={team}>
+                {team}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Runtime (Alt)</label>
+          <select
+            className={`form-input ${errors.runtime ? "error" : ""}`}
+            value={formData.runtime}
+            onClick={(e) => {
+              getRuntimeNamespaces(selectedTeam);
+            }}
+            onChange={(e) =>
+              setFormData({ ...formData, runtime: e.target.value })
+            }
+          >
+            <option value="">Select a runtime</option>
+            {runtimes.map((ns) => (
+              <option key={ns} value={ns}>
+                {ns}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
           <label className="form-label">Runtime *</label>
           <input
             type="text"
-            className={`form-input ${errors.runtime ? 'error' : ''}`}
+            className={`form-input ${errors.runtime ? "error" : ""}`}
             placeholder="e.g., super-service-bll-prod"
             value={formData.runtime}
-            onChange={(e) => setFormData({ ...formData, runtime: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, runtime: e.target.value })
+            }
           />
-          {errors.runtime && <div className="form-error">⚠️ {errors.runtime}</div>}
+          {errors.runtime && (
+            <div className="form-error">⚠️ {errors.runtime}</div>
+          )}
           <div className="form-hint">
             The Novus runtime name used to scope the dashboard panels.
           </div>
