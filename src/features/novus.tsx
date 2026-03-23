@@ -113,7 +113,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
         .withTarget(
           new PrometheusDataqueryBuilder()
             .datasource({ uid: "$prometheus" })
-            .expr(`sum(kube_pod_status_phase{phase=~"(Failed|Uknown|Pending)", namespace="$namespace"})`)
+            .expr(`sum(kube_pod_status_phase{phase=~"(Failed|Unknown|Pending)", namespace="$namespace"})`)
             .instant()
           )
       ];
