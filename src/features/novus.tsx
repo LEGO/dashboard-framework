@@ -4,8 +4,13 @@ import {
   PanelBuilder,
   ConstantVariableBuilder,
   AdHocVariableBuilder,
-  VariableHide
+  VariableHide,
+  ThresholdsConfigBuilder,
+  ThresholdsMode
 } from '@grafana/grafana-foundation-sdk/dashboard';
+
+import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
+import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
 
 import {
   PanelBuilder as TextPanelBuilder,
@@ -13,6 +18,7 @@ import {
 } from '@grafana/grafana-foundation-sdk/text';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
+import { TypeThresholdBuilder } from '@grafana/grafana-foundation-sdk/expr';
 
 export const FeatureID = "novus";
 export const FeatureName = "Novus Runtime Information";
@@ -73,6 +79,46 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     ];
   };
 
+  const genOverviewPanels = () => {
+    return [
+      // Shows Pods Running
+      new StatsPanelBuilder()
+        .title("Novus: Pods Ready")
+        .description(`
+          Kubernetes Pods that are healthy, ready to work, and accept
+          requests. If this number is correct, and the app has errors,
+          then the issue does not involve with the container platform.
+        `.replace(/\s+/g, ' ').trim())
+        .height(4)
+        .thresholds(new ThresholdsConfigBuilder().mode(ThresholdsMode.Absolute).steps([{value: 0.0, color: "green"}]))
+        .interval("5m")
+        .withTarget(
+          new PrometheusDataqueryBuilder()
+            .datasource({ uid: "$prometheus" })
+            .expr(`sum(kube_pod_status_phase{phase="Running", namespace="$namespace"})`)
+            .instant()
+        ),
+      // Shows Pods Pending, errors
+      new StatsPanelBuilder()
+        .title("Novus: Pods not Ready")
+        .thresholds(new ThresholdsConfigBuilder().mode(ThresholdsMode.Absolute).steps([{value: 0.0, color: "red"}]))
+        .description(`
+          Kubernetes Pods that are either pending, with errors or uknown
+          state. Might signal an upgrade or errors. If this number is not 0,
+          and the app has errors, then the issue might involve container
+          platform, or a botched released! Oppsie!
+        `.replace(/\s+/g, ' ').trim())
+        .height(4)
+        .interval("5m")
+        .withTarget(
+          new PrometheusDataqueryBuilder()
+            .datasource({ uid: "$prometheus" })
+            .expr(`sum(kube_pod_status_phase{phase=~"(Failed|Unknown|Pending)", namespace="$namespace"})`)
+            .instant()
+          )
+      ];
+  };
+
   const genPanels = () => {
     return [NOVUS_BANNER].concat(NOVUS_LIBRARY_PANELS.map((panel) =>
       new PanelBuilder()
@@ -94,7 +140,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
 
   const onSubmit = () => {
     if (!validate()) return;
-    setDashboardPanels(FeatureID, [], genPanels(), genVariables());
+    setDashboardPanels(FeatureID, genOverviewPanels(), genPanels(), genVariables());
     goForward();
   };
 
