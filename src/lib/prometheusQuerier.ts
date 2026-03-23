@@ -2,9 +2,7 @@ export function queryPrometheus(query: string, token?: string) {
   const host =
     "https://istar-proxy.novus-cloud-tools.prod.novus.legogroup.io/api/datasources/proxy/uid/APP-02358-mimir-prod";
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "Accept-Encoding": "gzip, deflate, br",
+    Accept: "application/json",
   };
 
   if (token) {
