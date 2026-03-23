@@ -97,11 +97,17 @@ export default function Component({ goBack, goForward, dashboardData }) {
     return JSON.stringify(dashboard.build(), null, 2);
   };
 
-  const copyDashboard = () => {
+  const copyDashboard = (ev: React.MouseEvent<HTMLButtonElement>) => {
     const dashboardJson = generateGrafanaDashboard();
     navigator.clipboard.writeText(dashboardJson);
-    alert('Dashboard JSON copied to clipboard!');
-  }
+    const oldText = ev.target.innerText;
+    ev.target.innerText = "✅ Copied!";
+    ev.target.disabled = true;
+    setTimeout(() => {
+      ev.target.innerText = "📋 Copy to Clipboard";
+      ev.target.disabled = false;
+    }, 2000);
+  };
 
   const downloadDashboard = () => {
     const dashboardJson = generateGrafanaDashboard();
