@@ -6,6 +6,11 @@ import { LogsDedupStrategy } from '@grafana/grafana-foundation-sdk/common';
 import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
 import { BigValueGraphMode } from '@grafana/grafana-foundation-sdk/common';
 
+import {
+  PanelBuilder as TextPanelBuilder,
+  TextMode
+} from '@grafana/grafana-foundation-sdk/text';
+
 import { usePersistentState } from '../lib/usePersistentState.ts';
 
 export const FeatureID = "logs";
@@ -38,6 +43,19 @@ export function Component({ goBack, goForward, setDashboardPanels }){
 
   const genPanels = () => {
     return [
+      new TextPanelBuilder()
+      .title("")
+      .transparent(true)
+      .mode(TextMode.HTML)
+      .span(24)
+      .height(2)
+      .content(`
+        <div style="height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; padding: 10px 35px; border-radius: 12px; text-align: center;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
+            <h2 style="margin: 0; font-size: 2em; font-weight: 700;">🪵 Logs</h2>
+          </div>
+        </div>
+      `),
       new LogsPanelBuilder()
         .title("")
         .transparent(true)

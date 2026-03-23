@@ -5,6 +5,7 @@ import {
   RowBuilder,
   TimePickerBuilder,
 } from '@grafana/grafana-foundation-sdk/dashboard';
+
 import {
   PanelBuilder as TextPanelBuilder,
   TextMode
