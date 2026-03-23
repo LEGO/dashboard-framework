@@ -114,6 +114,10 @@ export default function Component({ goBack, goForward, dashboardData }) {
     document.body.removeChild(element);
   };
 
+  const openGrafanaImport = () => {
+    window.open('https://grafana.istar.thelegogroup.com/dashboard/import', '_blank');
+  }
+
   return (
     <>
       <div className="wizard-content">
@@ -146,6 +150,14 @@ export default function Component({ goBack, goForward, dashboardData }) {
             className="btn btn-primary"
           >
             ⬇️ Download JSON
+          </button>
+          <button
+            type="button"
+            onClick={openGrafanaImport}
+            className="btn btn-secondary"
+            style={{ gridColumn: 'span 2' }}
+          >
+            🚀 Open Grafana Import Page
           </button>
         </div>
       </div>
