@@ -7,14 +7,29 @@ import {
 } from '@grafana/grafana-foundation-sdk/dashboard';
 
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
-import { PanelBuilder as StatusHistoryPanelBuilder } from '@grafana/grafana-foundation-sdk/statushistory';
+import { PanelBuilder as TimeSeriesPanelBuilder } from '@grafana/grafana-foundation-sdk/timeseries';
 import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
-import { AxisPlacement, BigValueGraphMode, VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
+import { BigValueGraphMode, GraphThresholdsStyleConfigBuilder, GraphThresholdsStyleMode, VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
+import { PanelBuilder as TextPanelBuilder, TextMode } from '@grafana/grafana-foundation-sdk/text';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
 
 export const FeatureID = "slo";
 export const FeatureName = "Service Level Objective";
+
+const ROW_BANNER = new TextPanelBuilder()
+  .title("")
+  .transparent(true)
+  .mode(TextMode.HTML)
+  .span(24)
+  .height(2)
+  .content(`
+    <div style="display: flex; height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; border-radius: 12px; align-items: center; text-align: center;">
+      <div style="width: 100%;">
+        <h2 style="margin: 0; font-size: 2em; font-weight: 700;">📈 Service Level Objectives</h2>
+      </div>
+    </div>
+  `)
 
 export function Component({ goBack, goForward, setDashboardPanels }){
   const [errors, setErrors] = useState({
@@ -25,6 +40,15 @@ export function Component({ goBack, goForward, setDashboardPanels }){
   const [formData, setFormData] = usePersistentState("feat_slo_formData", {target: 99.5});
   const [metrics, setMetrics] = usePersistentState("feat_slo_metrics", []);
 
+  const getTreshold = () => new ThresholdsConfigBuilder()
+    .mode(ThresholdsMode.Absolute)
+    .steps([
+      { value: 0.0, color: "red" },
+      { value: parseFloat(((formData.target-0.001) / 100).toFixed(5)), color: "orange" },
+      { value: parseFloat((formData.target / 100).toFixed(5)), color: "green" },
+      { value: 1.0, color: "green" },
+    ])
+
   const genOverviewPanels = () => {
     return metrics.map(
       (metric) => new StatsPanelBuilder()
@@ -32,15 +56,8 @@ export function Component({ goBack, goForward, setDashboardPanels }){
         .height(4)
         .interval("5m")
         .graphMode(BigValueGraphMode.Line)
-        .thresholds(
-          new ThresholdsConfigBuilder()
-            .mode(ThresholdsMode.Percentage)
-            .steps([
-              { value: (formData.target / 100), color: "red" },
-              { value: ((formData.target / 100) + 1) / 2, color: "orange" },
-              { value: 1, color: "green" },
-            ])
-        )
+        .decimals(5)
+        .thresholds(getTreshold())
         .unit("percentunit")
         .withTarget(
           new PrometheusDataqueryBuilder()
@@ -52,32 +69,28 @@ export function Component({ goBack, goForward, setDashboardPanels }){
   };
 
   const genPanels = () => {
-    return metrics.map(
-      (metric) => new StatusHistoryPanelBuilder()
+    return [ROW_BANNER].concat(metrics.map(
+      (metric) => new TimeSeriesPanelBuilder()
         .title(metric.name)
+        .displayName("Service Level Indicator")
         .height(8)
         .span(24)
         .interval("5m")
-        .thresholds(
-          new ThresholdsConfigBuilder()
-            .mode(ThresholdsMode.Percentage)
-            .steps([
-              { value: (formData.target / 100), color: "red" },
-              { value: ((formData.target / 100) + 1) / 2, color: "orange" },
-              { value: 1, color: "green" },
-            ])
+        .thresholdsStyle(
+          new GraphThresholdsStyleConfigBuilder().mode(GraphThresholdsStyleMode.DashedAndArea)
         )
+        .decimals(5)
+        .thresholds(getTreshold())
         .legend(new VizLegendOptionsBuilder().isVisible(false))
-        .axisPlacement(AxisPlacement.Hidden)
         .unit("percentunit")
         .withTarget(
           new PrometheusDataqueryBuilder()
             .datasource({ uid: "$prometheus" })
             .expr(`(${metric.queryGood})/(${metric.queryValid})`)
           )
-        );
+        ));
   };
-  
+
   const calculateDowntime = ( percentage, period ) => {
     if(percentage === 100) return "impossible! 😅";
     const downtimePercentage = (100 - percentage);

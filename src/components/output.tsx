@@ -6,6 +6,11 @@ import {
   TimePickerBuilder,
 } from '@grafana/grafana-foundation-sdk/dashboard';
 
+import {
+  PanelBuilder as TextPanelBuilder,
+  TextMode
+} from '@grafana/grafana-foundation-sdk/text';
+
 
 export default function Component({ goBack, goForward, dashboardData }) {
   const generateGrafanaDashboard = () => {
@@ -44,6 +49,26 @@ export default function Component({ goBack, goForward, dashboardData }) {
 
     dashboard = dashboard.withRow(new RowBuilder("Overview"));
 
+    dashboard = dashboard.withPanel(
+      new TextPanelBuilder()
+        .title("")
+        .transparent(true)
+        .mode(TextMode.HTML)
+        .span(24) // biiig one
+        .height(4)
+        .content(`
+            <!-- Header -->
+            <div style="display: flex; height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; border-radius: 12px; align-items: center; text-align: center;">
+              <div style="width: 100%;">
+                <h1 style="margin: 0; font-size: 2.5em; font-weight: 700;">${dashboardData.name}</h1>
+                <p style="margin: 0; font-size: 1.1em; opacity: 0.95;">
+                 ${dashboardData.description}
+                </p>
+              </div>
+            </div>
+          `)
+    );
+
     // Extract panells for the overview
     const overviewPanels = dashboardData.features.map((feat) => {
       if (!feat.enabled) return [];
@@ -77,7 +102,7 @@ export default function Component({ goBack, goForward, dashboardData }) {
     navigator.clipboard.writeText(dashboardJson);
     alert('Dashboard JSON copied to clipboard!');
   }
-  
+
   const downloadDashboard = () => {
     const dashboardJson = generateGrafanaDashboard();
     const element = document.createElement('a');

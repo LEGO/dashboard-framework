@@ -1,6 +1,7 @@
 import { PanelBuilder as TimeSeriesPanelBuilder } from '@grafana/grafana-foundation-sdk/timeseries';
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
 import { VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
+import { PanelBuilder as TextPanelBuilder, TextMode } from '@grafana/grafana-foundation-sdk/text';
 
 import { useState } from 'react';
 
@@ -8,6 +9,20 @@ import { usePersistentState } from '../lib/usePersistentState.ts';
 
 export const FeatureID = "metrics";
 export const FeatureName = "Custom Metrics";
+
+const ROW_BANNER = new TextPanelBuilder()
+  .title("")
+  .transparent(true)
+  .mode(TextMode.HTML)
+  .span(24)
+  .height(2)
+  .content(`
+    <div style="display: flex; height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; border-radius: 12px; align-items: center; text-align: center;">
+      <div style="width: 100%;">
+        <h2 style="margin: 0; font-size: 2em; font-weight: 700;">📈 Metrics</h2>
+      </div>
+    </div>
+  `)
 
 export function Component({ goBack, goForward, setDashboardPanels }){
   const [errors, setErrors] = useState({});
@@ -17,7 +32,8 @@ export function Component({ goBack, goForward, setDashboardPanels }){
 
   const genPanels = () => {
     const panelSpan = 24 / metrics.length
-    return metrics.map(
+    // Adds the Row banner in the section
+    return [ROW_BANNER].concat(metrics.map(
       (metric) => new TimeSeriesPanelBuilder()
           .title(metric.name)
           .height(8)
@@ -28,7 +44,7 @@ export function Component({ goBack, goForward, setDashboardPanels }){
               .datasource({ uid: "$prometheus" })
               .expr(metric.query)
           )
-        );
+        ));
   };
 
   const validate = () => {

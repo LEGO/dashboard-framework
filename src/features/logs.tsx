@@ -6,10 +6,29 @@ import { LogsDedupStrategy } from '@grafana/grafana-foundation-sdk/common';
 import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
 import { BigValueGraphMode } from '@grafana/grafana-foundation-sdk/common';
 
+import {
+  PanelBuilder as TextPanelBuilder,
+  TextMode
+} from '@grafana/grafana-foundation-sdk/text';
+
 import { usePersistentState } from '../lib/usePersistentState.ts';
 
 export const FeatureID = "logs";
 export const FeatureName = "Logs";
+
+const ROW_BANNER = new TextPanelBuilder()
+  .title("")
+  .transparent(true)
+  .mode(TextMode.HTML)
+  .span(24)
+  .height(2)
+  .content(`
+    <div style="display: flex; height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; border-radius: 12px; align-items: center; text-align: center;">
+      <div style="width: 100%;">
+        <h2 style="margin: 0; font-size: 2em; font-weight: 700;">🪵 Logs</h2>
+      </div>
+    </div>
+  `)
 
 export function Component({ goBack, goForward, setDashboardPanels }){
   const [errors, setErrors] = useState({
@@ -23,10 +42,11 @@ export function Component({ goBack, goForward, setDashboardPanels }){
 
   const genOverviewPanels = () => {
     return [new StatsPanelBuilder()
-      .title("Log Errors: " + formData.service_name)
+      .title("Errors in logs: " + formData.service_name)
       .height(4)
       .interval("1m")
       .graphMode(BigValueGraphMode.Line)
+      .noValue("0")
       .withTarget(
         new LokiDataqueryBuilder()
           .datasource({ uid: "$loki" })
@@ -37,7 +57,7 @@ export function Component({ goBack, goForward, setDashboardPanels }){
   };
 
   const genPanels = () => {
-    return [
+    return [ROW_BANNER,
       new LogsPanelBuilder()
         .title("")
         .transparent(true)
