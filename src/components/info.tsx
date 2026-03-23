@@ -27,10 +27,6 @@ export default function Component({ dashboardData, goBack, goForward, setDashboa
       newErrors.name = 'Consider a human readable, longer name (3 letters min)';
     }
 
-    if (dashboardInfo.description.length < 20) {
-      newErrors.description = 'Consider a human readable, longer description (20 letters min)';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0
   }
@@ -54,7 +50,7 @@ export default function Component({ dashboardData, goBack, goForward, setDashboa
           </i>
         </p>
         <div className="form-group">
-          <label className="form-label">Dashboarda Name *</label>
+          <label className="form-label">Dashboard Name *</label>
           <input
             type="text"
             className={`form-input ${errors.name ? 'error' : ''}`}
@@ -66,7 +62,7 @@ export default function Component({ dashboardData, goBack, goForward, setDashboa
         </div>
 
         <div className="form-group">
-          <label className="form-label">Dasbhoard Description</label>
+          <label className="form-label">Dashboard Description</label>
           <textarea
             className={`form-input ${errors.description ? 'error' : ''}`}
             placeholder="Optional: Describe what this dashboard monitors and what info people can find inside..."
