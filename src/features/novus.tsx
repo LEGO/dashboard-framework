@@ -1,6 +1,16 @@
 import { useState } from 'react';
 
-import { PanelBuilder, ConstantVariableBuilder, AdHocVariableBuilder, VariableHide } from '@grafana/grafana-foundation-sdk/dashboard';
+import {
+  PanelBuilder,
+  ConstantVariableBuilder,
+  AdHocVariableBuilder,
+  VariableHide
+} from '@grafana/grafana-foundation-sdk/dashboard';
+
+import {
+  PanelBuilder as TextPanelBuilder,
+  TextMode
+} from '@grafana/grafana-foundation-sdk/text';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
 
@@ -15,6 +25,26 @@ const NOVUS_LIBRARY_PANELS = [
   { name: "Novus Memory Usage", uid: "affw0vxt0u03kd" },
   { name: "Novus Policy Alerts", uid: "ffee6egctyio0e" },
 ];
+
+// A banner aded before every other panel to introduce people to that specific
+// section 
+const NOVUS_BANNER = new TextPanelBuilder()
+  .title("")
+  .transparent(true)
+  .mode(TextMode.HTML)
+  .span(24)
+  .height(3)
+  .content(`
+    <div style="height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; padding: 10px 35px; border-radius: 12px; text-align: center;">
+      <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
+        <h2 style="margin: 0; font-size: 2em; font-weight: 700;">Novus Telemetry</h2>
+      </div>
+      <p style="margin: 0; font-size: 1em; opacity: 0.95;">
+       Telemetry data for workloads running in Novus, Kubernetes Container Platform 
+      </p>
+    </div>
+  `)
+
 
 export function Component({ goBack, goForward, setDashboardPanels }) {
   const [errors, setErrors] = useState({});
@@ -41,13 +71,13 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   };
 
   const genPanels = () => {
-    return NOVUS_LIBRARY_PANELS.map((panel) =>
+    return [NOVUS_BANNER].concat(NOVUS_LIBRARY_PANELS.map((panel) =>
       new PanelBuilder()
         .title(panel.name)
         .height(8)
         .span(12)
         .libraryPanel({ name: panel.name, uid: panel.uid })
-    );
+    ));
   };
 
   const validate = () => {
