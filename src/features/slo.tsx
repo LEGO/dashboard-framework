@@ -10,6 +10,7 @@ import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana
 import { PanelBuilder as TimeSeriesPanelBuilder } from '@grafana/grafana-foundation-sdk/timeseries';
 import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
 import { BigValueGraphMode, GraphThresholdsStyleConfigBuilder, GraphThresholdsStyleMode, VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
+import { PanelBuilder as TextPanelBuilder, TextMode } from '@grafana/grafana-foundation-sdk/text';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
 
@@ -75,8 +76,6 @@ export function Component({ goBack, goForward, setDashboardPanels }){
         .height(8)
         .span(24)
         .interval("5m")
-        .axisSoftMin(0)
-        .axisSoftMax(1)
         .thresholdsStyle(
           new GraphThresholdsStyleConfigBuilder().mode(GraphThresholdsStyleMode.DashedAndArea)
         )

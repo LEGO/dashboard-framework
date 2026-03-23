@@ -42,10 +42,11 @@ export function Component({ goBack, goForward, setDashboardPanels }){
 
   const genOverviewPanels = () => {
     return [new StatsPanelBuilder()
-      .title("Log Errors: " + formData.service_name)
+      .title("Errors in logs: " + formData.service_name)
       .height(4)
       .interval("1m")
       .graphMode(BigValueGraphMode.Line)
+      .noValue("0")
       .withTarget(
         new LokiDataqueryBuilder()
           .datasource({ uid: "$loki" })
