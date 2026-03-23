@@ -58,13 +58,13 @@ export default function Component({ goBack, goForward, dashboardData }) {
         .height(4)
         .content(`
             <!-- Header -->
-            <div style="height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; padding: 35px; border-radius: 12px; text-align: center;">
-              <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 12px;">
+            <div style="display: flex; height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; border-radius: 12px; align-items: center; text-align: center;">
+              <div style="width: 100%;">
                 <h1 style="margin: 0; font-size: 2.5em; font-weight: 700;">${dashboardData.name}</h1>
+                <p style="margin: 0; font-size: 1.1em; opacity: 0.95;">
+                 ${dashboardData.description}
+                </p>
               </div>
-              <p style="margin: 0; font-size: 1.1em; opacity: 0.95;">
-               ${dashboardData.description}
-              </p>
             </div>
           `)
     );

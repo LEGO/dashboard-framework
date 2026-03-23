@@ -35,13 +35,13 @@ const NOVUS_BANNER = new TextPanelBuilder()
   .span(24)
   .height(3)
   .content(`
-    <div style="height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; padding: 10px 35px; border-radius: 12px; text-align: center;">
-      <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
+    <div style="display: flex; height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; border-radius: 12px; align-items: center; text-align: center;">
+      <div style="width: 100%;">
         <h2 style="margin: 0; font-size: 2em; font-weight: 700;">Novus Telemetry</h2>
+        <p style="margin: 0; font-size: 1em; opacity: 0.95;">
+         Telemetry data for workloads running in Novus, Kubernetes Container Platform 
+        </p>
       </div>
-      <p style="margin: 0; font-size: 1em; opacity: 0.95;">
-       Telemetry data for workloads running in Novus, Kubernetes Container Platform 
-      </p>
     </div>
   `)
 
