@@ -97,11 +97,17 @@ export default function Component({ goBack, goForward, dashboardData }) {
     return JSON.stringify(dashboard.build(), null, 2);
   };
 
-  const copyDashboard = () => {
+  const copyDashboard = (ev: React.MouseEvent<HTMLButtonElement>) => {
     const dashboardJson = generateGrafanaDashboard();
     navigator.clipboard.writeText(dashboardJson);
-    alert('Dashboard JSON copied to clipboard!');
-  }
+    const oldText = ev.target.innerText;
+    ev.target.innerText = "✅ Copied!";
+    ev.target.disabled = true;
+    setTimeout(() => {
+      ev.target.innerText = "📋 Copy to Clipboard";
+      ev.target.disabled = false;
+    }, 2000);
+  };
 
   const downloadDashboard = () => {
     const dashboardJson = generateGrafanaDashboard();
@@ -113,6 +119,10 @@ export default function Component({ goBack, goForward, dashboardData }) {
     element.click();
     document.body.removeChild(element);
   };
+
+  const openGrafanaImport = () => {
+    window.open('https://grafana.istar.thelegogroup.com/dashboard/import', '_blank');
+  }
 
   return (
     <>
@@ -146,6 +156,14 @@ export default function Component({ goBack, goForward, dashboardData }) {
             className="btn btn-primary"
           >
             ⬇️ Download JSON
+          </button>
+          <button
+            type="button"
+            onClick={openGrafanaImport}
+            className="btn btn-secondary"
+            style={{ gridColumn: 'span 2' }}
+          >
+            🚀 Open Grafana Import Page
           </button>
         </div>
       </div>
