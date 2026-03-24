@@ -28,19 +28,19 @@ bun install
 bun run dev
 ```
 
-You can then open a browser to [http://localhost:3000](localhost:3000) and
+You can then open a browser to [localhost:3000](http://localhost:3000) and
 use the dashboard framework while working on it.
 
 # Contributing
 
-Contributions are more than welcome. By sending PRs, you agree to license your
-work under the same license as this repository.
+Contributions are more than welcome. By sending PRs (pull request), you agree
+to license your work under the same license as this repository.
+Please read and get familiar with the [contributing guidelines](CONTRIBUTING,md)
+before opening a PR.
 
-The usage of AI, LLMs, and similar tools is discouraged and such contributions
-entirely made with such tools will not be considered nor reviewed.
-
-For major changes, please open an issue first to discuss what you would like
-to change.
+As this project is in the early stages of development, we are still working
+on the contribution guidelines and best practices. We appreciate your patience
+and understanding as we work to improve the project.
 
 # License
 
