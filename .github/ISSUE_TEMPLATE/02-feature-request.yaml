@@ -1,0 +1,26 @@
+name: Feature Request
+description: Improvements to the dashboard framework or feature suggestions.
+title: "[Feature Request]: "
+labels: ["feature"]
+
+type: feature
+body:
+  - type: dropdown
+    id: scope
+    attributes:
+      label: What
+      options:
+        - Features
+        - Panels
+        - Other
+      default: 0
+    validations:
+      required: false
+
+  - type: markdown
+    id: description
+    attributes:
+      label: What would you like to change?
+      description: Tell us more about yoru feature request!
+    validations:
+      required: true
