@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
 
 import { AutoComplete } from 'primereact/autocomplete';
@@ -65,6 +65,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   const [runtimes, setRuntimes] = useState([]);
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState("");
+  const [deployments, setDeployments] = useState([]);
   const auth = useAuth();
   
   const getTeams = () => {
@@ -105,7 +106,6 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     let rts: any[] = [];
     allRuntimes.then((items: Array<{namespace: string, team: string}>) => {
       items.forEach((r) => {
-        console.log(r.namespace, r.team, selectedTeam, event.query);
         if (r.namespace.toLowerCase().includes(event.query.toLowerCase()) && (!selectedTeam || r.team === selectedTeam)) {
           rts.push(r.namespace);
         }
@@ -114,20 +114,24 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     })
   }
 
-  // const getRuntimeNamespaces = (team?: string) => {
-  //   let query = `group(kube_namespace_labels{label_novus_legogroup_io_namespace_type="managed-customer-runtime"`;
-  //   if (team) {
-  //     query += `, label_novus_legogroup_io_team_name="${team}"`;
-  //   }
-  //   query += `}) by (namespace)`;
-  //   return queryPrometheus(query, auth?.user?.id_token).then((result) => {
-  //     setRuntimes(result.data.result.map((item: any) => item.metric.namespace));
-  //   });
-  // };
-
   const [formData, setFormData] = usePersistentState("feat_novus_formData", {
     runtime: "",
+    deployments: [],
   });
+
+  useEffect(() => {
+    formData.deployments = [];
+    if (formData.runtime!="") {
+      // Get the deployments in the selected runtime
+      queryPrometheus(
+        `group(kube_deployment_spec_replicas{namespace="${formData.runtime}"}) by (deployment)`,
+        auth?.user?.id_token,
+       ).then((result) => {
+        setDeployments(result.data.result.map((item: any) => item.metric.deployment));
+       }
+      )
+    }
+  }, [formData.runtime])
 
   const genVariables = () => {
     const podFilter = new AdHocVariableBuilder("novus_pod_filter")
@@ -147,7 +151,9 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   };
 
   const genOverviewPanels = () => {
-    return [
+    let overviewPanels = [];
+
+    overviewPanels = overviewPanels.concat([
       // Shows Pods Running
       new StatsPanelBuilder()
         .title("Novus: Pods Ready")
@@ -183,7 +189,30 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             .expr(`sum(kube_pod_status_phase{phase=~"(Failed|Unknown|Pending)", namespace="$namespace"})`)
             .instant()
           )
-    ];
+    ]);
+
+    formData.deployments.forEach((deployment) => {
+      overviewPanels.push(
+        new StatsPanelBuilder()
+          .title(`Novus: ${deployment} Pods Ready`)
+          .description(`
+            Kubernetes Pods for deployment ${deployment} that are healthy, ready to work, and accept
+            requests. If this number is correct, and the app has errors,
+            then the issue does not involve with the container platform.
+          `.replace(/\s+/g, ' ').trim())
+          .height(4)
+          .thresholds(new ThresholdsConfigBuilder().mode(ThresholdsMode.Absolute).steps([{value: 0.0, color: "green"}]))
+          .interval("5m")
+          .withTarget(
+            new PrometheusDataqueryBuilder()
+              .datasource({ uid: "$prometheus" })
+              .expr(`max(kube_deployment_status_replicas_available{deployment="${deployment}", namespace="$namespace"})`)
+              .instant()
+          )
+      );
+    })
+    
+    return overviewPanels;
   };
 
   const genPanels = () => {
@@ -248,6 +277,29 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             The Novus runtime name used to scope the dashboard panels.
           </div>
         </div>
+
+        {formData.runtime != "" && deployments.length > 0 && (
+          <ul>
+            {deployments.map((deployment) => (
+              <li key={deployment}>
+                <input
+                  type="checkbox"
+                  checked={formData.deployments?.includes(deployment)}
+                  onChange={_ => {
+                    formData.deployments = formData.deployments || [];
+                    if (formData.deployments.includes(deployment)) {
+                      formData.deployments = formData.deployments.filter(d => d != deployment);
+                    } else {
+                      formData.deployments.push(deployment);
+                    }
+                    setFormData({...formData});
+                  }}
+                />
+                {deployment}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="wizard-footer">
