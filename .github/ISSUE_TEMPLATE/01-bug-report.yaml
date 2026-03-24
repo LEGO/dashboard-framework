@@ -1,11 +1,11 @@
 name: Bug Report
 description: File a bug report.
 title: "[Bug]: "
-labels: ["bug", ]
+labels: ["bug"]
 
 type: bug
 body:
-  - type: textarea
+  - type: markdown
     id: what-happened
     attributes:
       label: What happened?
@@ -13,7 +13,7 @@ body:
     validations:
       required: true
 
-  - type: textarea
+  - type: input
     id: what-feature
     attributes:
       label: What feature were you using?
@@ -30,4 +30,4 @@ body:
     id: how-reproduce
     attributes:
       label: How can we reproduce the bug?
-      description: Tell us how we could reproduce the bug
+      description: Tell us how we could reproduce the bug, if possible.
