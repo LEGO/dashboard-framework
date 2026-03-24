@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
+
+import { AutoComplete } from 'primereact/autocomplete';
 
 import {
   PanelBuilder,
@@ -63,36 +65,73 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   const [runtimes, setRuntimes] = useState([]);
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState("");
+  const [deployments, setDeployments] = useState([]);
   const auth = useAuth();
-
+  
   const getTeams = () => {
     return queryPrometheus(
       'group(kube_namespace_labels{label_novus_legogroup_io_namespace_type="managed-customer-runtime", label_novus_legogroup_io_team_name!=""}) by (label_novus_legogroup_io_team_name)',
       auth?.user?.id_token,
     ).then((result) => {
-      console.log("Prometheus response for teams:", result);
-      setTeams(
-        result.data.result.map(
-          (item: any) => item.metric.label_novus_legogroup_io_team_name,
-        ),
-      );
+      return result.data.result.map((item: any) => item.metric.label_novus_legogroup_io_team_name);
     });
   };
 
-  const getRuntimeNamespaces = (team?: string) => {
-    let query = `group(kube_namespace_labels{label_novus_legogroup_io_namespace_type="managed-customer-runtime"`;
-    if (team) {
-      query += `, label_novus_legogroup_io_team_name="${team}"`;
-    }
-    query += `}) by (namespace)`;
+  const getAllRuntimes = () => {
+    let query = `group(kube_namespace_labels{label_novus_legogroup_io_namespace_type="managed-customer-runtime", label_novus_legogroup_io_team_name!=""}) by (namespace, label_novus_legogroup_io_team_name)`;
     return queryPrometheus(query, auth?.user?.id_token).then((result) => {
-      setRuntimes(result.data.result.map((item: any) => item.metric.namespace));
+      return result.data.result.map((item: any) => ({
+        namespace: item.metric.namespace,
+        team: item.metric.label_novus_legogroup_io_team_name,
+      }));
     });
-  };
+  }
+
+  const [allTeams] = useState(getTeams().then((t) => t));
+  const [allRuntimes] = useState(getAllRuntimes().then((r) => r));
+  
+  const searchTeams = (event) => {
+    let ts: any[] = [];
+    allTeams.then((items: Array<string>) => {
+      items.forEach((team) => {
+        if (team.toLowerCase().includes(event.query.toLowerCase())) {
+          ts.push(team);
+        }
+      });
+      setTeams(ts);
+    })
+  }
+
+  const searchRuntimes = (event) => {
+    let rts: any[] = [];
+    allRuntimes.then((items: Array<{namespace: string, team: string}>) => {
+      items.forEach((r) => {
+        if (r.namespace.toLowerCase().includes(event.query.toLowerCase()) && (!selectedTeam || r.team === selectedTeam)) {
+          rts.push(r.namespace);
+        }
+      });
+      setRuntimes(rts);
+    })
+  }
 
   const [formData, setFormData] = usePersistentState("feat_novus_formData", {
     runtime: "",
+    deployments: [],
   });
+
+  useEffect(() => {
+    formData.deployments = [];
+    if (formData.runtime!="") {
+      // Get the deployments in the selected runtime
+      queryPrometheus(
+        `group(kube_deployment_spec_replicas{namespace="${formData.runtime}"}) by (deployment)`,
+        auth?.user?.id_token,
+       ).then((result) => {
+        setDeployments(result.data.result.map((item: any) => item.metric.deployment));
+       }
+      )
+    }
+  }, [formData.runtime])
 
   const genVariables = () => {
     const podFilter = new AdHocVariableBuilder("novus_pod_filter")
@@ -112,7 +151,9 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   };
 
   const genOverviewPanels = () => {
-    return [
+    let overviewPanels = [];
+
+    overviewPanels = overviewPanels.concat([
       // Shows Pods Running
       new StatsPanelBuilder()
         .title("Novus: Pods Ready")
@@ -148,7 +189,30 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             .expr(`sum(kube_pod_status_phase{phase=~"(Failed|Unknown|Pending)", namespace="$namespace"})`)
             .instant()
           )
-    ];
+    ]);
+
+    formData.deployments.forEach((deployment) => {
+      overviewPanels.push(
+        new StatsPanelBuilder()
+          .title(`Novus: ${deployment} Pods Ready`)
+          .description(`
+            Kubernetes Pods for deployment ${deployment} that are healthy, ready to work, and accept
+            requests. If this number is correct, and the app has errors,
+            then the issue does not involve with the container platform.
+          `.replace(/\s+/g, ' ').trim())
+          .height(4)
+          .thresholds(new ThresholdsConfigBuilder().mode(ThresholdsMode.Absolute).steps([{value: 0.0, color: "green"}]))
+          .interval("5m")
+          .withTarget(
+            new PrometheusDataqueryBuilder()
+              .datasource({ uid: "$prometheus" })
+              .expr(`max(kube_deployment_status_replicas_available{deployment="${deployment}", namespace="$namespace"})`)
+              .instant()
+          )
+      );
+    })
+    
+    return overviewPanels;
   };
 
   const genPanels = () => {
@@ -186,56 +250,25 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
         </p>
 
         <div className="form-group">
-          <label className="form-label">Team (optional)</label>
-          <select
-            className={`form-input ${errors.team ? "error" : ""}`}
-            value={selectedTeam}
-            onClick={() => getTeams()}
-            onChange={(e) => {
-              setSelectedTeam(e.target.value);
-              getRuntimeNamespaces(e.target.value);
-            }}
-          >
-            <option value="">All Teams</option>
-            {teams.map((team) => (
-              <option key={team} value={team}>
-                {team}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Runtime (Alt)</label>
-          <select
-            className={`form-input ${errors.runtime ? "error" : ""}`}
-            value={formData.runtime}
-            onClick={(e) => {
-              getRuntimeNamespaces(selectedTeam);
-            }}
-            onChange={(e) =>
-              setFormData({ ...formData, runtime: e.target.value })
-            }
-          >
-            <option value="">Select a runtime</option>
-            {runtimes.map((ns) => (
-              <option key={ns} value={ns}>
-                {ns}
-              </option>
-            ))}
-          </select>
+          <label className="form-label">Team</label>
+          <AutoComplete 
+            value={selectedTeam} 
+            suggestions={teams} 
+            completeMethod={searchTeams} 
+            onChange={(e) => setSelectedTeam(e.value)} 
+            dropdownMode="current"
+          />
         </div>
 
         <div className="form-group">
           <label className="form-label">Runtime *</label>
-          <input
-            type="text"
-            className={`form-input ${errors.runtime ? "error" : ""}`}
-            placeholder="e.g., super-service-bll-prod"
+          <AutoComplete
             value={formData.runtime}
-            onChange={(e) =>
-              setFormData({ ...formData, runtime: e.target.value })
-            }
+            suggestions={runtimes}
+            completeMethod={searchRuntimes}
+            onChange={(e) => setFormData({ ...formData, runtime: e.value })}
+            dropdownMode="current"
+            className={`form-input ${errors.runtime ? "error" : ""}`}
           />
           {errors.runtime && (
             <div className="form-error">⚠️ {errors.runtime}</div>
@@ -244,6 +277,29 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             The Novus runtime name used to scope the dashboard panels.
           </div>
         </div>
+
+        {formData.runtime != "" && deployments.length > 0 && (
+          <ul>
+            {deployments.map((deployment) => (
+              <li key={deployment}>
+                <input
+                  type="checkbox"
+                  checked={formData.deployments?.includes(deployment)}
+                  onChange={_ => {
+                    formData.deployments = formData.deployments || [];
+                    if (formData.deployments.includes(deployment)) {
+                      formData.deployments = formData.deployments.filter(d => d != deployment);
+                    } else {
+                      formData.deployments.push(deployment);
+                    }
+                    setFormData({...formData});
+                  }}
+                />
+                {deployment}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="wizard-footer">
