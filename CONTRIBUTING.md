@@ -1,7 +1,8 @@
-## Contribution
+## Contributing Guidelines
 
-This is great that you'd like to contribute to this project. All change
-requests should go through the steps described below.
+It's great that you'd like to contribute to this project. Though, there
+are a few things to consider first! All contributors should read and understand
+these guidelines, and folow the steps described below.
 
 Contributions are more than welcome. By sending PRs, you agree to license your
 work under the same license as this repository.
