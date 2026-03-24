@@ -42,6 +42,8 @@
 
           shellHook = ''
             set -a
+            # Loads secrets used for testing or deployment on static website.
+            # TODO: Switch to GitHub Actions or another system and rotate them
             source <(${pkgs.sops}/bin/sops --decrypt ./.sops.env)
             set +a
           '';

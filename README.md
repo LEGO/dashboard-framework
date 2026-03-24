@@ -8,6 +8,29 @@ more useful to show, rather than how to structure it.
 > This project is currently developed for internal use, but may later be
 > developed for broader consumption
 
+## Usage
+
+To run the project locally you need [Nix](https://nixos.org/) installed and
+available. It will install and prepare all the dependencies needed. We
+run and test the project on macOS and GNU/Linux.
+
+To access the development shell run:
+
+```shell
+nix develop
+```
+
+After that you can install the node_modules and start the server:
+
+```shell
+bun install
+
+bun run dev
+```
+
+You can then open a browser to [http://localhost:3000](localhost:3000) and
+use the dashboard framework while working on it.
+
 # Contributing
 
 Contributions are more than welcome. By sending PRs, you agree to license your
@@ -15,6 +38,9 @@ work under the same license as this repository.
 
 The usage of AI, LLMs, and similar tools is discouraged and such contributions
 entirely made with such tools will not be considered nor reviewed.
+
+For major changes, please open an issue first to discuss what you would like
+to change.
 
 # License
 
