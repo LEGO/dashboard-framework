@@ -2,6 +2,10 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { DashboardGenerator } from "./Wizard.tsx";
 import { AuthProvider } from "react-oidc-context";
+import { PrimeReactProvider, PrimeReactContext } from "primereact/api";
+
+// import "primereact/resources/themes/lara-light-cyan/theme.css";
+
 import "./index.css";
 
 const oidcConfig = {
@@ -21,9 +25,11 @@ const elem = document.getElementById("root")!;
 const app = (
   <StrictMode>
     <AuthProvider {...oidcConfig}>
-      <div className="app">
-        <DashboardGenerator />
-      </div>
+      <PrimeReactProvider unstyled={true}>
+        <div className="app">
+          <DashboardGenerator />
+        </div>
+      </PrimeReactProvider>
     </AuthProvider>
   </StrictMode>
 );
