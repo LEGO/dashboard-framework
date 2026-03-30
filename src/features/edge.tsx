@@ -12,9 +12,16 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     novus_region: string;
   };
 
+  type Queue = {
+    queue: string;
+  };
+
   const auth = useAuth();
   const [rabbits, setRabbits] = useState<Rabbit[]>();
   const [selectedRegion, setSelectedRegion] = useState<string>();
+  const [queues, setQueues] = useState<Queue[]>();
+  const [queueFilter, setQueueFilter] = useState<string>(".*");
+  const [filteredQueues, setFilteredQueues] = useState<Queue[]>();
 
   const [selectedRabbitCluster, setSelectedRabbitCluster] = useState<Rabbit>();
   const [filteredRabbitClusters, setFilteredRabbitClusters] = useState<
@@ -35,16 +42,34 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     });
   };
 
+  const getRabbitQueues = () => {
+    let rabbitmq_cluster = selectedRabbitCluster?.rabbitmq_cluster;
+    if (rabbitmq_cluster === undefined) {
+      setQueues([]);
+    }
+    return queryPrometheus(
+      `group(rabbitmq_detailed_queue_messages{service="${rabbitmq_cluster}"}) by (queue)`,
+      auth?.user?.id_token,
+    ).then((result) => {
+      return result.data.result.map((item: any) => {
+        return {
+          queue: item.metric.queue,
+        };
+      });
+    });
+  };
+
   const searchRabbitClusters = (event) => {
+    console.log("Searching with ");
+    console.log(event);
     let _filtered: Rabbit[];
     if (!event.query.trim().length) {
       _filtered = rabbits ?? [];
     } else {
       let terms = event.query.trim().split(/[-_\s]/);
-      console.log(terms);
       _filtered =
         rabbits?.filter((r) => {
-          return terms.some(
+          return terms.every(
             (t) =>
               r.rabbitmq_cluster.toLowerCase().includes(t) ||
               r.novus_region.toLowerCase().includes(t),
@@ -58,6 +83,16 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   useEffect(() => {
     getRabbitClusters().then((res) => setRabbits(res));
   }, [auth]);
+
+  useEffect(() => {
+    getRabbitQueues().then((res) => {
+      setQueues(res);
+    });
+  }, [selectedRabbitCluster]);
+
+  useEffect(() => {
+    setFilteredQueues(queues?.filter((q) => q.queue.match(queueFilter)));
+  }, [queues, queueFilter]);
 
   const onSubmit = () => {
     // if (!validate()) return;
@@ -103,18 +138,44 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
           Edge is our stateful services. This feature adds pre-built panels
           scoped to edge service instances
         </p>
-        <div>
+        <div className="form-group">
           <AutoComplete<Rabbit>
             field="rabbitmq_cluster"
             value={selectedRabbitCluster}
             suggestions={filteredRabbitClusters}
             completeMethod={searchRabbitClusters}
-            onChange={(e) => setSelectedRabbitCluster(e.value)}
+            onChange={(e) => {
+              if (e?.value?.rabbitmq_cluster != "") {
+                setSelectedRabbitCluster(e.value);
+              } else {
+                setSelectedRabbitCluster(undefined);
+              }
+            }}
             itemTemplate={rabbitTemplate}
             selectedItemTemplate={selectedRabbitTemplate}
             dropdown
           ></AutoComplete>
         </div>
+        {selectedRabbitCluster && (
+          <div className="form-group">
+            <div id="queue-filter-container">
+            <input
+              id="queue-filter-input"
+              className="form-input"
+              value={queueFilter}
+              onChange={(e) => setQueueFilter(e.target.value)}
+            ></input>
+            <div id="queue-sum">queues: {filteredQueues?.length}</div>
+            </div>
+            <div className="queuecontainer">
+            <div className="queuelist">
+            {filteredQueues?.map((q) => {
+              return <div key={q.queue}>{q.queue}</div>;
+            })}
+            </div>
+            </div>
+          </div>
+        )}
       </div>
       {/* <div>
         <select
