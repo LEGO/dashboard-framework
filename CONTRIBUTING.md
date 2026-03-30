@@ -8,7 +8,9 @@ Contributions are more than welcome. By sending PRs, you agree to license your
 work under the same license as this repository.
 
 The usage of AI, LLMs, and similar tools is discouraged. Contributions entirely
-made with such tools will not be considered, reviewed.
+made with such tools will not be considered, reviewed. We don't want to be
+overwhelmed or spend time by pull requests that take more time to review due to
+no understanding of the changes or bad to average quality of code.
 
 For major changes, please open an issue first to discuss what you would like
 to change. We prefer small contributions over big and hard to review changes.
