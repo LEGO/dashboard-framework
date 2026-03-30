@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { queryPrometheus } from "../lib/prometheusQuerier.ts";
 import { useAuth } from "react-oidc-context";
 import { AutoComplete } from "primereact/autocomplete";
+import { PanelBuilder as TimeSeriesPanelBuilder } from "@grafana/grafana-foundation-sdk/timeseries";
+import { DataqueryBuilder as PrometheusDataqueryBuilder } from "@grafana/grafana-foundation-sdk/prometheus";
 
 export const FeatureID = "edge";
 export const FeatureName = "Edge Services";
@@ -94,9 +96,25 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     setFilteredQueues(queues?.filter((q) => q.queue.match(queueFilter)));
   }, [queues, queueFilter]);
 
+  const genRabbitOverview = () => {
+    return [new TimeSeriesPanelBuilder()
+      .title("Queues")
+      .height(8)
+      .span(8)
+      .withTarget(
+        new PrometheusDataqueryBuilder()
+          .datasource({ uid: "$prometheus" })
+          .expr(
+            `sum(rabbitmq_detailed_queue_messages{service="${selectedRabbitCluster?.rabbitmq_cluster}", queue=~"${queueFilter}"}) by (queue)`,
+          ).legendFormat(`{{ queue }}`),
+      )];
+  };
+
   const onSubmit = () => {
     // if (!validate()) return;
     // setDashboardPanels(FeatureID, genOverviewPanels(), genPanels(), genVariables());
+    let out = genRabbitOverview();
+    setDashboardPanels(FeatureID, [], genRabbitOverview());
     goForward();
   };
 
@@ -112,21 +130,6 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   const selectedRabbitTemplate = (rabbit) => {
     return rabbit.rabbitmq_cluster;
   };
-
-  // const panelFooterTemplate = () => {
-  //       const isCountrySelected = (filteredCountries || []).some( country => country['name'] === selectedCountry );
-  //          return (
-  //           <div className="py-2 px-3">
-  //               {isCountrySelected ? (
-  //                   <span>
-  //                       <b>{selectedCountry}</b> selected.
-  //                   </span>
-  //               ) : (
-  //                   'No country selected.'
-  //               )}
-  //           </div>
-  //       );
-  //   };
 
   return (
     <>
@@ -159,20 +162,20 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
         {selectedRabbitCluster && (
           <div className="form-group">
             <div id="queue-filter-container">
-            <input
-              id="queue-filter-input"
-              className="form-input"
-              value={queueFilter}
-              onChange={(e) => setQueueFilter(e.target.value)}
-            ></input>
-            <div id="queue-sum">queues: {filteredQueues?.length}</div>
+              <input
+                id="queue-filter-input"
+                className="form-input"
+                value={queueFilter}
+                onChange={(e) => setQueueFilter(e.target.value)}
+              ></input>
+              <div id="queue-sum">queues: {filteredQueues?.length}</div>
             </div>
             <div className="queuecontainer">
-            <div className="queuelist">
-            {filteredQueues?.map((q) => {
-              return <div key={q.queue}>{q.queue}</div>;
-            })}
-            </div>
+              <div className="queuelist">
+                {filteredQueues?.map((q) => {
+                  return <div key={q.queue}>{q.queue}</div>;
+                })}
+              </div>
             </div>
           </div>
         )}
