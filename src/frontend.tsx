@@ -16,7 +16,6 @@ const oidcConfig = {
   response_type: "code",
   scope: "openid profile email",
   onSigninCallback: (_user: User | void): void => {
-    console.log("User signed in:", _user);
     window.history.replaceState({}, document.title, window.location.pathname);
   },
 };
