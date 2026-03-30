@@ -7,11 +7,11 @@ these guidelines, and folow the steps described below.
 Contributions are more than welcome. By sending PRs, you agree to license your
 work under the same license as this repository.
 
-The usage of AI, LLMs, and similar tools is discouraged and such contributions
-entirely made with such tools will not be considered nor reviewed.
+The usage of AI, LLMs, and similar tools is discouraged. Contributions entirely
+made with such tools will not be considered, reviewed.
 
 For major changes, please open an issue first to discuss what you would like
-to change.
+to change. We prefer small contributions over big and hard to review changes.
 
 ## Pull Requests
 
