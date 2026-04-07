@@ -177,6 +177,22 @@ body {
   font-size: 14px;
 }
 
+#queue-filter-container {
+  width: 100%;
+  flex: auto;
+  display: flex;
+  align-items: flex-end;
+}
+
+#queue-filter-input {
+  width: 70%;
+}
+
+#queue-sum {
+  width: 30%;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
 .form-input,
 .form-select,
 .form-textarea {
@@ -468,6 +484,48 @@ input:checked+.toggle-slider:before {
   border-radius: var(--radius-md);
   border-left: 4px solid var(--color-error);
 }
+
+.p-accordion {
+  margin-top: 10px;
+}
+
+.p-accordion-tab {
+  box-sizing: border-box;
+  margin-bottom: 5px;
+  border: 1px solid var(--color-border);
+}
+
+.p-accordion-header {
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-primary);
+  
+  /* border-bottom: 1px solid var(--color-border); */
+  padding: 10px;
+}
+
+.p-accordion-toggle-icon {
+  margin-right: 10px;
+}
+
+/* .p-accordion-header > a > * {
+  margin: 10px;
+} */
+
+.p-accordion-content {
+  border-top: 1px solid var(--color-border);
+  padding: 10px;
+}
+
+.queuecontainer {
+  background-color: var(--color-bg-primary);
+}
+
+.queuelist {
+  max-height: 200px;
+  overflow: scroll;
+  margin: 10px;
+}
+
 
 /* PrimeReact AutoComplete styling */
 .p-autocomplete {
