@@ -4,21 +4,26 @@ import { useAuth } from "react-oidc-context";
 import { AutoComplete } from "primereact/autocomplete";
 import { PanelBuilder as TimeSeriesPanelBuilder } from "@grafana/grafana-foundation-sdk/timeseries";
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from "@grafana/grafana-foundation-sdk/prometheus";
+import { useEnv } from '../components/env.tsx';
 
 export const FeatureID = "edge";
 export const FeatureName = "Edge Services";
 
-export function Component({ goBack, goForward, setDashboardPanels }) {
-  type Rabbit = {
-    rabbitmq_cluster: string;
-    novus_region: string;
-  };
+type Rabbit = {
+  rabbitmq_cluster: string;
+  novus_region: string;
+};
 
-  type Queue = {
-    queue: string;
-  };
+type Queue = {
+  queue: string;
+};
+
+export function Component({ goBack, goForward, setDashboardPanels }) {
 
   const auth = useAuth();
+  const env = useEnv();
+  const host = env?.["BUN_PUBLIC_PROMETHEUS_ENDPOINT"];
+
   const [rabbits, setRabbits] = useState<Rabbit[]>();
   const [selectedRegion, setSelectedRegion] = useState<string>();
   const [queues, setQueues] = useState<Queue[]>();
@@ -32,6 +37,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
 
   const getRabbitClusters = () => {
     return queryPrometheus(
+      host,
       "group(rabbitmq_identity_info{}) by (rabbitmq_cluster, novus_region)",
       auth?.user?.id_token,
     ).then((result) => {
@@ -50,6 +56,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
       setQueues([]);
     }
     return queryPrometheus(
+      host,
       `group(rabbitmq_detailed_queue_messages{service="${rabbitmq_cluster}"}) by (queue)`,
       auth?.user?.id_token,
     ).then((result) => {
@@ -62,8 +69,6 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   };
 
   const searchRabbitClusters = (event) => {
-    console.log("Searching with ");
-    console.log(event);
     let _filtered: Rabbit[];
     if (!event.query.trim().length) {
       _filtered = rabbits ?? [];
@@ -83,14 +88,14 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   };
 
   useEffect(() => {
+    if (!auth.isAuthenticated) return;
     getRabbitClusters().then((res) => setRabbits(res));
-  }, [auth]);
+  }, [auth.isAuthenticated]);
 
   useEffect(() => {
-    getRabbitQueues().then((res) => {
-      setQueues(res);
-    });
-  }, [selectedRabbitCluster]);
+    if (!auth.isAuthenticated || !selectedRabbitCluster) return;
+    getRabbitQueues().then((res) => setQueues(res));
+  }, [auth.isAuthenticated, selectedRabbitCluster]);
 
   useEffect(() => {
     setFilteredQueues(queues?.filter((q) => q.queue.match(queueFilter)));

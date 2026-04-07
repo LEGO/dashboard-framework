@@ -1,9 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "react-oidc-context";
 
-import { usePersistentState } from "./lib/usePersistentState.ts";
-
-import IdentityComponent from "./components/identity.tsx";
 import IntroComponent from "./components/intro.tsx";
 import InfoComponent from "./components/info.tsx";
 import FeaturesComponent from "./components/features.tsx";
@@ -99,7 +95,6 @@ export function DashboardGenerator() {
 
   return (
     <div className="wizard-container">
-      <IdentityComponent />
       <div className="wizard-header">
         <h1>📊 Grafana Dashboard Wizard</h1>
         <p>Create your observability dashboard configuration</p>
