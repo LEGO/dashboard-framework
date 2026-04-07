@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { DashboardGenerator } from "./Wizard.tsx";
-import { LEGOAuthProvider } from "./components/identity.tsx"
+import { OIDCAuthProvider } from "./components/identity.tsx"
 // import "primereact/resources/themes/lara-light-cyan/theme.css";
 
 import "./index.css";
@@ -9,11 +9,11 @@ import "./index.css";
 const elem = document.getElementById("root")!;
 const app = (
   <StrictMode>
-    <LEGOAuthProvider>
+    <OIDCAuthProvider>
       <div className="app">
         <DashboardGenerator />
       </div>
-    </LEGOAuthProvider>
+    </OIDCAuthProvider>
   </StrictMode>
 );
 

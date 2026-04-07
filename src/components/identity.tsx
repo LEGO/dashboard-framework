@@ -2,10 +2,9 @@ import { useAuth } from "react-oidc-context";
 import { AuthProvider } from "react-oidc-context";
 import { PrimeReactProvider } from "primereact/api";
 
-
 const oidcConfig = {
-  authority: "https://login.microsoftonline.com/1d063515-6cad-4195-9486-ea65df456faa",
-  client_id: "3e0642f0-e0de-4a20-bf67-1f66d39863c0",
+  authority: import.meta.env.BUN_PUBLIC_OIDC_AUTHORITY,
+  client_id: import.meta.env.BUN_PUBLIC_OIDC_CLIENT_ID,
   redirect_uri: window.location.origin,
   response_type: "code",
   scope: "openid profile email",
@@ -56,8 +55,8 @@ export default function IdentityComponent() {
   );
  }
 
-// Wrapper to add authentication to The LEGO Group SSO
-export function LEGOAuthProvider({ children }) {
+// Wrapper to add authentication to allow OIDC
+export function OIDCAuthProvider({ children }) {
   return (
     <AuthProvider {...oidcConfig}>
       <PrimeReactProvider unstyled={true}>
