@@ -1,7 +1,8 @@
 import { useAuth } from "react-oidc-context";
 import { AuthProvider } from "react-oidc-context";
 import { PrimeReactProvider } from "primereact/api";
-import { useEffect, useState } from 'react';
+
+import { useEnv } from './env.tsx';
 
 const DEFAULT_OIDC_DATA = {
   authority: "", // Loaded from env variable BUN_PUBLIC_ODIC_AUTHORITY
@@ -59,35 +60,12 @@ export default function IdentityComponent() {
 
 // Wrapper to add authentication to allow OIDC
 export function OIDCAuthProvider({ children }) {
-  const [oidcConfig, setOidcConfig] = useState(null);
-  const [error, setError] = useState(null);
+  const env = useEnv();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/api/env');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const jsonData = await response.json();
-
-        setOidcConfig({
-          ...DEFAULT_OIDC_DATA,
-          authority: jsonData["BUN_PUBLIC_OIDC_AUTHORITY"],
-          client_id: jsonData["BUN_PUBLIC_ODIC_CLIENT_ID"],
-        });
-
-      } catch (envError) {
-        console.error("Error getting /api/env: ", envError);
-        setError(envError.message);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (!oidcConfig) {
-    return <div>Loading...</div>;
+  const oidcConfig = {
+    ...DEFAULT_OIDC_DATA,
+    authority: env?.["BUN_PUBLIC_OIDC_AUTHORITY"],
+    client_id: env?.["BUN_PUBLIC_ODIC_CLIENT_ID"],
   }
 
   return (

@@ -1,6 +1,5 @@
-export function queryPrometheus(query: string, token?: string) {
-  const host =
-    "https://istar-proxy.novus-cloud-tools.prod.novus.legogroup.io/api/datasources/proxy/uid/APP-02358-mimir-prod";
+// Run Queries against a proxy
+export function queryPrometheus(host: string, query: string, token?: string) {
   const headers: Record<string, string> = {
     Accept: "application/json",
   };

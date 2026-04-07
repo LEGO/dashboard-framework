@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
+import { useEnv } from '../components/env.tsx';
 
 import { AutoComplete } from 'primereact/autocomplete';
 
@@ -67,9 +68,13 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   const [selectedTeam, setSelectedTeam] = useState("");
   const [deployments, setDeployments] = useState([]);
   const auth = useAuth();
-  
+  const env = useEnv();
+
+  const host = env?.["BUN_PUBLIC_PROMETHEUS_ENDPOINT"];
+
   const getTeams = () => {
     return queryPrometheus(
+      host,
       'group(kube_namespace_labels{label_novus_legogroup_io_namespace_type="managed-customer-runtime", label_novus_legogroup_io_team_name!=""}) by (label_novus_legogroup_io_team_name)',
       auth?.user?.id_token,
     ).then((result) => {
@@ -79,7 +84,8 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
 
   const getAllRuntimes = () => {
     let query = `group(kube_namespace_labels{label_novus_legogroup_io_namespace_type="managed-customer-runtime", label_novus_legogroup_io_team_name!=""}) by (namespace, label_novus_legogroup_io_team_name)`;
-    return queryPrometheus(query, auth?.user?.id_token).then((result) => {
+    return queryPrometheus(
+      host, query, auth?.user?.id_token).then((result) => {
       return result.data.result.map((item: any) => ({
         namespace: item.metric.namespace,
         team: item.metric.label_novus_legogroup_io_team_name,
@@ -124,6 +130,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     if (formData.runtime!="") {
       // Get the deployments in the selected runtime
       queryPrometheus(
+        host,
         `group(kube_deployment_spec_replicas{namespace="${formData.runtime}"}) by (deployment)`,
         auth?.user?.id_token,
        ).then((result) => {
@@ -131,7 +138,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
        }
       )
     }
-  }, [formData.runtime])
+  }, [host, auth.isAuthenticated, formData.runtime])
 
   const genVariables = () => {
     const podFilter = new AdHocVariableBuilder("novus_pod_filter")
