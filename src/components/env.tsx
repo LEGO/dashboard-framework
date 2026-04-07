@@ -1,3 +1,9 @@
+// Provides values from /api/env endpoint,
+// useful for configuring parts without hardcoding values in the code.
+// NOTE: Since /api/env is exposed, those are not for secrets, just for
+// things that are not to be hard coded, so that the Dashboard Framework
+// can be used by different companies/setup
+
 import { createContext, useContext, useEffect, useState } from 'react';
 
 type EnvConfig = Record<string, string>;
