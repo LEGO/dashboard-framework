@@ -69,8 +69,6 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   };
 
   const searchRabbitClusters = (event) => {
-    console.log("Searching with ");
-    console.log(event);
     let _filtered: Rabbit[];
     if (!event.query.trim().length) {
       _filtered = rabbits ?? [];
@@ -90,14 +88,14 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   };
 
   useEffect(() => {
+    if (!auth.isAuthenticated) return;
     getRabbitClusters().then((res) => setRabbits(res));
-  }, [auth]);
+  }, [auth.isAuthenticated]);
 
   useEffect(() => {
-    getRabbitQueues().then((res) => {
-      setQueues(res);
-    });
-  }, [selectedRabbitCluster]);
+    if (!auth.isAuthenticated || !selectedRabbitCluster) return;
+    getRabbitQueues().then((res) => setQueues(res));
+  }, [auth.isAuthenticated, selectedRabbitCluster]);
 
   useEffect(() => {
     setFilteredQueues(queues?.filter((q) => q.queue.match(queueFilter)));

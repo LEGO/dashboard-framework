@@ -93,8 +93,14 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     });
   }
 
-  const [allTeams] = useState(getTeams().then((t) => t));
-  const [allRuntimes] = useState(getAllRuntimes().then((r) => r));
+  const [allTeams, setAllTeams] = useState<Promise<string[]>>(Promise.resolve([]));
+  const [allRuntimes, setAllRuntimes] = useState<Promise<{namespace: string, team: string}[]>>(Promise.resolve([]));
+
+  useEffect(() => {
+    if (!auth.isAuthenticated) return;
+    setAllTeams(getTeams());
+    setAllRuntimes(getAllRuntimes());
+  }, [auth.isAuthenticated]);
   
   const searchTeams = (event) => {
     let ts: any[] = [];
@@ -126,18 +132,15 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   });
 
   useEffect(() => {
+    if (!auth.isAuthenticated || formData.runtime === "") return;
     formData.deployments = [];
-    if (formData.runtime!="") {
-      // Get the deployments in the selected runtime
-      queryPrometheus(
-        host,
-        `group(kube_deployment_spec_replicas{namespace="${formData.runtime}"}) by (deployment)`,
-        auth?.user?.id_token,
-       ).then((result) => {
-        setDeployments(result.data.result.map((item: any) => item.metric.deployment));
-       }
-      )
-    }
+    queryPrometheus(
+      host,
+      `group(kube_deployment_spec_replicas{namespace="${formData.runtime}"}) by (deployment)`,
+      auth?.user?.id_token,
+    ).then((result) => {
+      setDeployments(result.data.result.map((item: any) => item.metric.deployment));
+    });
   }, [host, auth.isAuthenticated, formData.runtime])
 
   const genVariables = () => {
