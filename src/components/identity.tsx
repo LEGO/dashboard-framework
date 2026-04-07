@@ -62,14 +62,20 @@ export default function IdentityComponent() {
 export function OIDCAuthProvider({ children }) {
   const env = useEnv();
 
-  const oidcConfig = {
-    ...DEFAULT_OIDC_DATA,
-    authority: env?.["BUN_PUBLIC_OIDC_AUTHORITY"],
-    client_id: env?.["BUN_PUBLIC_ODIC_CLIENT_ID"],
+  const authority = env?.["BUN_PUBLIC_OIDC_AUTHORITY"];
+  const client_id = env?.["BUN_PUBLIC_ODIC_CLIENT_ID"];
+  const oidcEnabled = authority && client_id;
+
+  if (!oidcEnabled) {
+    return (
+      <PrimeReactProvider unstyled={true}>
+        <div className="app">{ children }</div>
+      </PrimeReactProvider>
+    );
   }
 
   return (
-    <AuthProvider {...oidcConfig}>
+    <AuthProvider {...DEFAULT_OIDC_DATA} authority={authority} client_id={client_id}>
       <PrimeReactProvider unstyled={true}>
         <div className="app">
           <IdentityComponent />
