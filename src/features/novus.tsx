@@ -97,10 +97,10 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   const [allRuntimes, setAllRuntimes] = useState<Promise<{namespace: string, team: string}[]>>(Promise.resolve([]));
 
   useEffect(() => {
-    if (!auth.isAuthenticated) return;
+    if (!auth?.isAuthenticated) return;
     setAllTeams(getTeams());
     setAllRuntimes(getAllRuntimes());
-  }, [auth.isAuthenticated]);
+  }, [auth?.isAuthenticated]);
   
   const searchTeams = (event) => {
     let ts: any[] = [];
@@ -132,7 +132,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   });
 
   useEffect(() => {
-    if (!auth.isAuthenticated || formData.runtime === "") return;
+    if (!auth?.isAuthenticated || formData.runtime === "") return;
     formData.deployments = [];
     queryPrometheus(
       host,
@@ -141,7 +141,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     ).then((result) => {
       setDeployments(result.data.result.map((item: any) => item.metric.deployment));
     });
-  }, [host, auth.isAuthenticated, formData.runtime])
+  }, [host, auth?.isAuthenticated, formData.runtime])
 
   const genVariables = () => {
     const podFilter = new AdHocVariableBuilder("novus_pod_filter")
