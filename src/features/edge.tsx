@@ -88,14 +88,14 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   };
 
   useEffect(() => {
-    if (!auth.isAuthenticated) return;
+    if (!auth?.isAuthenticated) return;
     getRabbitClusters().then((res) => setRabbits(res));
-  }, [auth.isAuthenticated]);
+  }, [auth?.isAuthenticated]);
 
   useEffect(() => {
-    if (!auth.isAuthenticated || !selectedRabbitCluster) return;
+    if (!auth?.isAuthenticated || !selectedRabbitCluster) return;
     getRabbitQueues().then((res) => setQueues(res));
-  }, [auth.isAuthenticated, selectedRabbitCluster]);
+  }, [auth?.isAuthenticated, selectedRabbitCluster]);
 
   useEffect(() => {
     setFilteredQueues(queues?.filter((q) => q.queue.match(queueFilter)));
