@@ -5,9 +5,11 @@ import { AutoComplete } from "primereact/autocomplete";
 import { PanelBuilder as TimeSeriesPanelBuilder } from "@grafana/grafana-foundation-sdk/timeseries";
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from "@grafana/grafana-foundation-sdk/prometheus";
 import { useEnv } from '../components/env.tsx';
+import { faDatabase } from '@fortawesome/free-solid-svg-icons';
 
 export const FeatureID = "edge";
 export const FeatureName = "Edge Services";
+export const FeatureIcon = faDatabase;
 
 type Rabbit = {
   rabbitmq_cluster: string;

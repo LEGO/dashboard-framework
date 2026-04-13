@@ -12,9 +12,11 @@ import {
 } from '@grafana/grafana-foundation-sdk/text';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
+import { faScroll } from '@fortawesome/free-solid-svg-icons';
 
 export const FeatureID = "logs";
 export const FeatureName = "Logs";
+export const FeatureIcon = faScroll;
 
 const ROW_BANNER = new TextPanelBuilder()
   .title("")

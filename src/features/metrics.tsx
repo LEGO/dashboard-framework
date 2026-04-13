@@ -6,9 +6,11 @@ import { PanelBuilder as TextPanelBuilder, TextMode } from '@grafana/grafana-fou
 import { useState } from 'react';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
+import { faChartLine } from '@fortawesome/free-solid-svg-icons';
 
 export const FeatureID = "metrics";
 export const FeatureName = "Custom Metrics";
+export const FeatureIcon = faChartLine;
 
 const ROW_BANNER = new TextPanelBuilder()
   .title("")
