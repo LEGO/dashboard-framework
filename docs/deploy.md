@@ -40,14 +40,14 @@ All the variables are optional, setting them up will enable specific features.
 | `BUN_PUBLIC_GRAFANA_BASEURL` | `https://example.grafana.com` | The base URL of your Grafana Instance, used for import shortcuts  |
 | `BUN_PUBLIC_PROMETHEUS_ENDPOINT` | `https://prom.company.com` | The base URL of your Prometheus instance. Features use this to pre-fill datasource references in generated Grafana dashboards. Used for autocomplete |
 | `BUN_PUBLIC_OIDC_AUTHORITY` | `https://sso.company.com` | (see SSO/OIDC Setup below ) |
-| `BUN_PUBLIC_ODIC_CLIENT_ID` | `dashboard-framework` | (see SSO/OIDC Setup below ) |
+| `BUN_PUBLIC_OIDC_CLIENT_ID` | `dashboard-framework` | (see SSO/OIDC Setup below ) |
 
 ## SSO / OIDC setup
 
 To enable SSO you need to set the following env variables:
 
 * `BUN_PUBLIC_OIDC_AUTHORITY`, ex: `https://sso.company.com`
-* `BUN_PUBLIC_ODIC_CLIENT_ID`, ex: `dashboard-framework`
+* `BUN_PUBLIC_OIDC_CLIENT_ID`, ex: `dashboard-framework`
 
 The app uses the **authorization code flow** and sets its redirect URI
 automatically to `window.location.origin`, so register that as an allowed

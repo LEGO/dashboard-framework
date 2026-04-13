@@ -63,7 +63,7 @@ export function OIDCAuthProvider({ children }) {
   const env = useEnv();
 
   const authority = env?.["BUN_PUBLIC_OIDC_AUTHORITY"];
-  const client_id = env?.["BUN_PUBLIC_ODIC_CLIENT_ID"];
+  const client_id = env?.["BUN_PUBLIC_OIDC_CLIENT_ID"];
   const oidcEnabled = authority && client_id;
 
   if (!oidcEnabled) {
