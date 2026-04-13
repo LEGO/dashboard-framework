@@ -22,7 +22,6 @@ import {
 } from '@grafana/grafana-foundation-sdk/text';
 
 import { usePersistentState } from "../lib/usePersistentState.ts";
-import { TypeThresholdBuilder } from '@grafana/grafana-foundation-sdk/expr';
 
 import { queryPrometheus } from "../lib/prometheusQuerier.ts";
 
@@ -69,6 +68,10 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   const [deployments, setDeployments] = useState([]);
   const auth = useAuth();
   const env = useEnv();
+  const [formData, setFormData] = usePersistentState("feat_novus_formData", {
+    runtime: "",
+    deployments: [],
+  });
 
   const host = env?.["BUN_PUBLIC_PROMETHEUS_ENDPOINT"];
 
@@ -125,11 +128,6 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
       setRuntimes(rts);
     })
   }
-
-  const [formData, setFormData] = usePersistentState("feat_novus_formData", {
-    runtime: "",
-    deployments: [],
-  });
 
   useEffect(() => {
     if (!auth?.isAuthenticated || formData.runtime === "") return;

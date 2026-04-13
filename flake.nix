@@ -32,21 +32,16 @@
             bun
             s5cmd
             sops
+            podman
 
-            (writeShellScriptBin "upload" ''
-              ${pkgs.s5cmd}/bin/s5cmd sync \
-                --cache-control="max-age=3600, s-maxage=3600, stale-while-revalidate=3600, stale-if-error=1800, no-transform, public" \
-                ./dist/ s3://s3.elates.it/dashboard-generator/
+            (writeShellScriptBin "container-build" ''
+              ${pkgs.podman}/bin/podman build . -t ghcr.io/LEGO/dashboard-framework:$(${pkgs.git}/bin/git rev-parse --short HEAD)
+            '')
+
+            (writeShellScriptBin "container-push" ''
+              ${pkgs.podman}/bin/podman push ghcr.io/LEGO/dashboard-framework:$(${pkgs.git}/bin/git rev-parse --short HEAD)
             '')
           ];
-
-          shellHook = ''
-            set -a
-            # Loads secrets used for testing or deployment on static website.
-            # TODO: Switch to GitHub Actions or another system and rotate them
-            source <(${pkgs.sops}/bin/sops --decrypt ./.sops.env)
-            set +a
-          '';
         };
       }
     );
