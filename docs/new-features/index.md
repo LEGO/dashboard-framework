@@ -21,6 +21,8 @@ The framework then assembles everything into a single Grafana dashboard JSON:
 a shared **Overview row** (small stat panels from all features) at the top,
 followed by one dedicated section per enabled feature with more insights.
 
+![Features can be turned on and off](./select-features.webp)
+
 ### Example Feature
 
 Create a new file at `src/features/my-platform.tsx`. Every feature file
