@@ -53,7 +53,7 @@ const NOVUS_BANNER = new TextPanelBuilder()
       <div style="width: 100%;">
         <h2 style="margin: 0; font-size: 2em; font-weight: 700;">
           <img src="https://raw.githubusercontent.com/kubernetes/kubernetes/refs/heads/master/logo/logo.svg" style="height: 1em; width: auto;" alt="Kubernetes Logo">
-          Novus Telemetry
+          <a href="https://grafana.istar.thelegogroup.com/d/fdwat7xhijda8b/novus-runtime-overview?orgId=1&from=now-2d&to=now&timezone=browser&var-namespace=\${namespace}&var-no_runtimes=455&var-no_onpremise_runtimes=311&var-is_openshift=0&refresh=auto">Novus Telemetry</a>
         </h2>
         <p style="margin: 0; font-size: 1em; opacity: 0.95;">
          Telemetry data for workloads running in Novus, Kubernetes Container Platform
@@ -284,6 +284,9 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             onChange={(e) => setSelectedTeam(e.value)}
             dropdown
           />
+          <div className="form-hint">
+            Name of the team owning the runtime. Defaults to your team
+          </div>
         </div>
 
         <div className="form-group">
