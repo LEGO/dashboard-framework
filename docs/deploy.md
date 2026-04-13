@@ -40,7 +40,7 @@ All the variables are optional, setting them up will enable specific features.
 | `BUN_PUBLIC_GRAFANA_BASEURL` | `https://example.grafana.com` | The base URL of your Grafana Instance, used for import shortcuts  |
 | `BUN_PUBLIC_PROMETHEUS_ENDPOINT` | `https://prom.company.com` | The base URL of your Prometheus instance. Features use this to pre-fill datasource references in generated Grafana dashboards. Used for autocomplete |
 | `BUN_PUBLIC_OIDC_AUTHORITY` | `https://sso.company.com` | (see SSO/OIDC Setup below ) |
-| `BUN_PUBLIC_ODIC_CLIENT_ID` | `https://sso.company.com` | (see SSO/OIDC Setup below ) |
+| `BUN_PUBLIC_ODIC_CLIENT_ID` | `dashboard-framework` | (see SSO/OIDC Setup below ) |
 
 ## SSO / OIDC setup
 
