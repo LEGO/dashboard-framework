@@ -11,8 +11,12 @@ import {
   TextMode
 } from '@grafana/grafana-foundation-sdk/text';
 
+import { useEnv } from '../components/env.tsx';
 
 export default function Component({ goBack, goForward, dashboardData }) {
+  const env = useEnv();
+  const grafanaBaseurl = env?.["BUN_PUBLIC_GRAFANA_BASEURL"];
+
   const generateGrafanaDashboard = () => {
     let dashboard = new DashboardBuilder(dashboardData.name)
       .refresh('1m')
@@ -121,7 +125,7 @@ export default function Component({ goBack, goForward, dashboardData }) {
   };
 
   const openGrafanaImport = () => {
-    window.open('https://grafana.istar.thelegogroup.com/dashboard/import', '_blank');
+    window.open(grafanaBaseurl + '/dashboard/import', '_blank');
   }
 
   return (
@@ -157,14 +161,14 @@ export default function Component({ goBack, goForward, dashboardData }) {
           >
             ⬇️ Download JSON
           </button>
-          <button
+          {grafanaBaseurl && <button
             type="button"
             onClick={openGrafanaImport}
             className="btn btn-secondary"
             style={{ gridColumn: 'span 2' }}
           >
             🚀 Open Grafana Import Page
-          </button>
+          </button>}
         </div>
       </div>
       <div className="wizard-footer">

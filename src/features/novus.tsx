@@ -101,7 +101,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     setAllTeams(getTeams());
     setAllRuntimes(getAllRuntimes());
   }, [auth?.isAuthenticated]);
-  
+
   const searchTeams = (event) => {
     let ts: any[] = [];
     allTeams.then((items: Array<string>) => {
@@ -221,7 +221,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
           )
       );
     })
-    
+
     return overviewPanels;
   };
 
@@ -261,11 +261,11 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
 
         <div className="form-group">
           <label className="form-label">Team</label>
-          <AutoComplete 
-            value={selectedTeam} 
-            suggestions={teams} 
-            completeMethod={searchTeams} 
-            onChange={(e) => setSelectedTeam(e.value)} 
+          <AutoComplete
+            value={selectedTeam}
+            suggestions={teams}
+            completeMethod={searchTeams}
+            onChange={(e) => setSelectedTeam(e.value)}
             dropdownMode="current"
           />
         </div>
