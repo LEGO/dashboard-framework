@@ -100,6 +100,13 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     });
   }
 
+  const getFirstTeam = () => {
+    let query = `group(novus_user_team_membership{user="${auth?.user?.profile?.upn.toLowerCase()}"}) by (team)`
+    return queryPrometheus(host, query, auth?.user?.id_token).then((result) => {
+      return result.data.result[0].metric.team
+    })
+  }
+
   const [allTeams, setAllTeams] = useState<Promise<string[]>>(Promise.resolve([]));
   const [allRuntimes, setAllRuntimes] = useState<Promise<{namespace: string, team: string}[]>>(Promise.resolve([]));
 
@@ -107,6 +114,10 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     if (!auth?.isAuthenticated) return;
     setAllTeams(getTeams());
     setAllRuntimes(getAllRuntimes());
+  }, [auth?.isAuthenticated]);
+
+  useEffect(() => {
+    getFirstTeam().then(res => setSelectedTeam(res))
   }, [auth?.isAuthenticated]);
 
   const searchTeams = (event) => {
@@ -271,7 +282,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             suggestions={teams}
             completeMethod={searchTeams}
             onChange={(e) => setSelectedTeam(e.value)}
-            dropdownMode="current"
+            dropdown
           />
         </div>
 
@@ -282,8 +293,8 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             suggestions={runtimes}
             completeMethod={searchRuntimes}
             onChange={(e) => setFormData({ ...formData, runtime: e.value })}
-            dropdownMode="current"
             className={`form-input ${errors.runtime ? "error" : ""}`}
+            dropdown
           />
           {errors.runtime && (
             <div className="form-error">⚠️ {errors.runtime}</div>
