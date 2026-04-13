@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 export default function Component({ goBack, goForward, dashboardData, setDashboardData }){
 
   const toggleFeature = (featId, feat) => {
@@ -49,6 +51,7 @@ function renderFeatureToggle(featId, feat, toggleFeature){
           />
           <span className="toggle-slider"></span>
         </div>
+        {feat.icon && <FontAwesomeIcon icon={feat.icon} style={{width: '1em'}} />}
         <span style={{fontWeight: '500'}}>{feat.name}</span>
       </label>
       <div className="form-hint"></div>

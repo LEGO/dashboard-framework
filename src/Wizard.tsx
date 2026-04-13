@@ -33,6 +33,7 @@ const DEFAULT_DASHBOARD_DATA = {
       enabled: false,
       id: feat.FeatureID,
       name: feat.FeatureName,
+      icon: feat?.FeatureIcon,
       component: feat.Component,
       overviewPanels: [],
       panels: [],
