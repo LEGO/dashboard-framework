@@ -21,7 +21,7 @@ The framework then assembles everything into a single Grafana dashboard JSON:
 a shared **Overview row** (small stat panels from all features) at the top,
 followed by one dedicated section per enabled feature with more insights.
 
-![Features can be turned on and off](./select-features.webp)
+![Features can be turned on and off](select-features.webp)
 
 ### Example Feature
 
@@ -197,7 +197,7 @@ with my platform?_
 These panels are usually small, with a maximum span and height of 4. Bigger
 panels should go in the Feature Row.
 
-![Dashboard Overview Panels](./overview.webp) 
+![Dashboard Overview Panels](overview.webp) 
 
 A `StatsPanelBuilder` is a common choice:
 
@@ -227,7 +227,7 @@ These are the main visualizations. Used for deep dive, better understanding
 of the state. Think: _what would the user like to see to know in deetails
 if and what is wrong with my platform or the way they use it?_
 
-![Dashboard Feature Row Panels](./panels.webp)
+![Dashboard Feature Row Panels](panels.webp)
 
 Time-series panels are typical:
 
