@@ -12,11 +12,10 @@ import {
 } from '@grafana/grafana-foundation-sdk/text';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
-import { faScroll } from '@fortawesome/free-solid-svg-icons';
 
 export const FeatureID = "logs";
 export const FeatureName = "Logs";
-export const FeatureIcon = faScroll;
+export const FeatureIcon = "https://raw.githubusercontent.com/grafana/loki/refs/heads/main/docs/sources/logo.png";
 
 const ROW_BANNER = new TextPanelBuilder()
   .title("")

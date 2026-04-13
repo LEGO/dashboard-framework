@@ -24,11 +24,10 @@ import {
 import { usePersistentState } from "../lib/usePersistentState.ts";
 
 import { queryPrometheus } from "../lib/prometheusQuerier.ts";
-import { faKubernetes } from '@fortawesome/free-brands-svg-icons';
 
 export const FeatureID = "novus";
 export const FeatureName = "Novus Runtime Information";
-export const FeatureIcon = faKubernetes;
+export const FeatureIcon = "https://raw.githubusercontent.com/kubernetes/kubernetes/refs/heads/master/logo/logo.svg";
 
 // Boilerplate library panel definitions for Novus.
 // Replace UIDs with the actual library panel UIDs from your Grafana instance.

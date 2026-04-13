@@ -13,11 +13,10 @@ import { BigValueGraphMode, GraphThresholdsStyleConfigBuilder, GraphThresholdsSt
 import { PanelBuilder as TextPanelBuilder, TextMode } from '@grafana/grafana-foundation-sdk/text';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
-import { faGaugeHigh } from '@fortawesome/free-solid-svg-icons';
 
 export const FeatureID = "slo";
 export const FeatureName = "Service Level Objective";
-export const FeatureIcon = faGaugeHigh;
+export const FeatureIcon = "🚨";
 
 const ROW_BANNER = new TextPanelBuilder()
   .title("")
