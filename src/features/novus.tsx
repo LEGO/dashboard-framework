@@ -13,9 +13,10 @@ import {
   ThresholdsMode,
   MappingType,
   defaultValueMappingResult,
+  FieldColorModeId,
 } from "@grafana/grafana-foundation-sdk/dashboard";
 
-import { DataqueryBuilder as PrometheusDataqueryBuilder } from "@grafana/grafana-foundation-sdk/prometheus";
+import { DataqueryBuilder as PrometheusDataqueryBuilder, PromQueryFormat } from "@grafana/grafana-foundation-sdk/prometheus";
 import { PanelBuilder as StatsPanelBuilder } from "@grafana/grafana-foundation-sdk/stat";
 
 import {
@@ -222,33 +223,6 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     let overviewPanels = [];
 
     overviewPanels = overviewPanels.concat([
-      // Shows Pods Running
-      // new StatsPanelBuilder()
-      //   .title("Novus: Pods Ready")
-      //   .description(
-      //     `
-      //     Kubernetes Pods that are healthy, ready to work, and accept
-      //     requests. If this number is correct, and the app has errors,
-      //     then the issue does not involve with the container platform.
-      //   `
-      //       .replace(/\s+/g, " ")
-      //       .trim(),
-      //   )
-      //   .height(4)
-      //   .thresholds(
-      //     new ThresholdsConfigBuilder()
-      //       .mode(ThresholdsMode.Absolute)
-      //       .steps([{ value: 0.0, color: "green" }]),
-      //   )
-      //   .interval("5m")
-      //   .withTarget(
-      //     new PrometheusDataqueryBuilder()
-      //       .datasource({ uid: "$prometheus" })
-      //       .expr(
-      //         `sum(kube_pod_status_phase{phase="Running", namespace="$namespace"})`,
-      //       )
-      //       .instant(),
-      //   ),
       // Shows Pods Pending, errors
       new StatsPanelBuilder()
         .title("Novus: Unready Pods")
@@ -279,36 +253,79 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
         ),
     ]);
 
-    formData?.resources?.deployments?.forEach((deployment) => {
+    let deployRegex = formData?.resources?.deployments.join("|")
+
+    if (deployRegex !== "") {
       overviewPanels.push(
         new StatsPanelBuilder()
-          .title(`Novus: ${deployment} Pods Ready`)
-          .description(
-            `
-            Kubernetes Pods for deployment ${deployment} that are healthy, ready to work, and accept
-            requests. If this number is correct, and the app has errors,
-            then the issue does not involve with the container platform.
+        .title("Novus Deployments")
+        .description(
           `
-              .replace(/\s+/g, " ")
-              .trim(),
+          Kubernetes deployments statuses
+          `.replace(/\s+/g, " ")
+          .trim()
+        )
+        .height(4)
+        .withTarget(
+          new PrometheusDataqueryBuilder()
+          .datasource({ uid: "$prometheus" })
+          .expr(
+            `max(kube_deployment_status_condition{namespace=~"$namespace", condition="Available", deployment=~"${deployRegex}", status="true"}) by (deployment)`
           )
-          .height(4)
-          .thresholds(
-            new ThresholdsConfigBuilder()
-              .mode(ThresholdsMode.Absolute)
-              .steps([{ value: 0.0, color: "green" }]),
+          .legendFormat("{{deployment}}")
+          .instant()
+        )
+        .wideLayout(false)
+        .mappings([
+          {
+            type: MappingType.ValueToText,
+            options: {
+              "0": { "text": "Unhealthy", "color": "red"},
+              "1": { "text": "Healthy", "color": "green"}
+            }
+          }
+        ])
+        
+      )
+    }
+    
+    // let nginxHostRegex = formData?.resources?.nginxHosts.join("|")
+
+    formData?.resources?.nginxHosts.forEach((host) => {
+      overviewPanels.push(
+        new StatsPanelBuilder()
+        .title(host)
+        .description("An overview of the response codes returned by the ingresses with this host over the time frame selected in the dashboard")
+        .height(4)
+        .withTarget(
+          new PrometheusDataqueryBuilder()
+          .datasource({ uid: "$prometheus" })
+          .expr(
+            `floor(sum(increase(nginx_ingress_controller_requests{namespace="$namespace", host="${host}", status=~"[1-3].."}[$__range])))`
           )
-          .interval("5m")
-          .withTarget(
-            new PrometheusDataqueryBuilder()
-              .datasource({ uid: "$prometheus" })
-              .expr(
-                `max(kube_deployment_status_replicas_available{deployment="${deployment}", namespace="$namespace"})`,
-              )
-              .instant(),
-          ),
-      );
-    });
+          .legendFormat("Successes")
+        )
+        .withTarget(
+          new PrometheusDataqueryBuilder()
+          .datasource({ uid: "$prometheus" })
+          .expr(
+            `floor(sum(increase(nginx_ingress_controller_requests{namespace="$namespace", host="${host}", status=~"4.."}[$__range])))`
+          )
+          .legendFormat("4xx's")
+        )
+        .withTarget(
+          new PrometheusDataqueryBuilder()
+          .datasource({ uid: "$prometheus" })
+          .expr(
+            `floor(sum(increase(nginx_ingress_controller_requests{namespace="$namespace", host="${host}", status=~"5.."}[$__range])))`
+          )
+          .legendFormat("5xx's")
+        )
+        .overrideByQuery("A", [{id: "color", value: {mode: FieldColorModeId.Fixed, fixedColor: "green"}}])
+        .overrideByQuery("B", [{id: "color", value: {mode: FieldColorModeId.Fixed, fixedColor: "orange"}}])
+        .overrideByQuery("C", [{id: "color", value: {mode: FieldColorModeId.Fixed, fixedColor: "red"}}])
+      )
+    })
 
     return overviewPanels;
   };
