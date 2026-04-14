@@ -253,7 +253,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
         ),
     ]);
 
-    let deployRegex = formData?.resources?.deployments.join("|")
+    let deployRegex = formData?.resources?.deployments?.join("|")
 
     if (deployRegex !== "") {
       overviewPanels.push(
@@ -291,7 +291,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     
     // let nginxHostRegex = formData?.resources?.nginxHosts.join("|")
 
-    formData?.resources?.nginxHosts.forEach((host) => {
+    formData?.resources?.nginxHosts?.forEach((host) => {
       overviewPanels.push(
         new StatsPanelBuilder()
         .title(host)
