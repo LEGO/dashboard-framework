@@ -36,6 +36,8 @@ const NOVUS_LIBRARY_PANELS = [
   { name: "Novus CPU Usage", uid: "affw0w9ciuw3kf" },
   { name: "Novus Memory Usage", uid: "affw0vxt0u03kd" },
   { name: "Novus Policy Alerts", uid: "ffee6egctyio0e" },
+  { name: "CPU Requests Recommendations", uid: "bfio81viwd4hse", height: 11, span: 24, enabledBy: "showRecommendations" },
+  { name: "Memory Requests Recommendations", uid: "afio83xesz08wf", height: 11, span: 24, enabledBy: "showRecommendations" },
 ];
 
 // A banner aded before every other panel to introduce people to that specific
@@ -72,6 +74,7 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   const [formData, setFormData] = usePersistentState("feat_novus_formData", {
     runtime: "",
     deployments: [],
+    showRecommendations: false,
   });
 
   const host = env?.["BUN_PUBLIC_PROMETHEUS_ENDPOINT"];
@@ -225,11 +228,14 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   };
 
   const genPanels = () => {
-    return [NOVUS_BANNER].concat(NOVUS_LIBRARY_PANELS.map((panel) =>
+    const panels = NOVUS_LIBRARY_PANELS.filter((panel) =>
+      !panel.enabledBy || formData[panel.enabledBy]
+    );
+    return [NOVUS_BANNER].concat(panels.map((panel) =>
       new PanelBuilder()
         .title(panel.name)
-        .height(8)
-        .span(12)
+        .height(panel.height || 8)
+        .span(panel.span || 12)
         .libraryPanel({ name: panel.name, uid: panel.uid })
     ));
   };
@@ -309,6 +315,20 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             ))}
           </ul>
         )}
+        <div className="form-group">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer' }}>
+            <div className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={!!formData.showRecommendations}
+                onChange={(e) => setFormData({...formData, showRecommendations: !formData.showRecommendations})}
+              />
+              <span className="toggle-slider"></span>
+            </div>
+            <span style={{ fontWeight: '500' }}>CPU & Memory Request Recommendations</span>
+          </label>
+          <div className="form-hint">Include CPU and Memory request recommendation tables in the dashboard</div>
+        </div>
       </div>
 
       <div className="wizard-footer">
