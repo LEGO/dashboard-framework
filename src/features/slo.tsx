@@ -16,6 +16,7 @@ import { usePersistentState } from '../lib/usePersistentState.ts';
 
 export const FeatureID = "slo";
 export const FeatureName = "Service Level Objective";
+export const FeatureIcon = "🚨";
 
 const ROW_BANNER = new TextPanelBuilder()
   .title("")

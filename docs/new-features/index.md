@@ -26,7 +26,10 @@ followed by one dedicated section per enabled feature with more insights.
 ### Example Feature
 
 Create a new file at `src/features/my-platform.tsx`. Every feature file
-must export exactly three things: `FeatureID`, `FeatureName` and `Component`
+must export exactly three things: `FeatureID`, `FeatureName` and `Component`.
+
+`FeatureIcon` is optional and can be set as a URL for a small icon or as
+text/emoji to display as an icon.
 
 Here is an example feature to start:
 
@@ -41,8 +44,9 @@ import {
 import { usePersistentState } from "../lib/usePersistentState.ts";
 
 // Required constants
-export const FeatureID = "my-platform";     // unique lowercase slug
-export const FeatureName = "My Platform";   // display name shown in the wizard
+export const FeatureID = "my-platform";    // unique lowercase slug
+export const FeatureName = "My Platform";  // display name shown in the wizard
+export const FeatureIcon = "";             // Either URL or text to display as icon, can be emoji!
 
 // The component that will be used when enabled to display the form
 export function Component({ goBack, goForward, setDashboardPanels }) {

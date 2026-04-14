@@ -9,6 +9,7 @@ import { usePersistentState } from '../lib/usePersistentState.ts';
 
 export const FeatureID = "metrics";
 export const FeatureName = "Custom Metrics";
+export const FeatureIcon = "https://raw.githubusercontent.com/grafana/mimir/refs/heads/main/images/logo.png";
 
 const ROW_BANNER = new TextPanelBuilder()
   .title("")

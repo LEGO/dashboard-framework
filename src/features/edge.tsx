@@ -8,6 +8,7 @@ import { useEnv } from '../components/env.tsx';
 
 export const FeatureID = "edge";
 export const FeatureName = "Edge Services";
+export const FeatureIcon = "https://www.rabbitmq.com/assets/files/rabbitmq-logo-e91cacd38fcef5219149bc5cfa10b384.svg";
 
 type Rabbit = {
   rabbitmq_cluster: string;
