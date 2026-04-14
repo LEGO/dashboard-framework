@@ -607,6 +607,24 @@ input:checked+.toggle-slider:before {
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.4);
 }
 
+/* Novus resource selection */
+ul.novus-resources {
+  list-style: none;
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-primary);
+}
+
+li.novus-resource {
+  margin: auto;
+}
+
+li.novus-resource > input {
+  margin-right: 10px;
+  background-color: var(--color-primary);
+  height: 1.2rem;
+  width: 1.2rem;
+}
+
 @media (max-width: 640px) {
   .identity-container {
     min-width: 250px;
