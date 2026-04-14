@@ -117,9 +117,6 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   };
 
   const onSubmit = () => {
-    // if (!validate()) return;
-    // setDashboardPanels(FeatureID, genOverviewPanels(), genPanels(), genVariables());
-    let out = genRabbitOverview();
     setDashboardPanels(FeatureID, [], genRabbitOverview());
     goForward();
   };
@@ -144,10 +141,11 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
           Edge Configuration
         </h3>
         <p style={{ color: "#64748b", marginBottom: "20px", fontSize: "14px" }}>
-          Edge is our stateful services. This feature adds pre-built panels
-          scoped to edge service instances
+          Edge is our stateful services platform. This feature adds pre-built
+          panels scoped to edge service instances.
         </p>
         <div className="form-group">
+          <label className="form-label">What RabbitMQ Cluster are you using?</label>
           <AutoComplete<Rabbit>
             field="rabbitmq_cluster"
             value={selectedRabbitCluster}
