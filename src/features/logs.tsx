@@ -15,6 +15,7 @@ import { usePersistentState } from '../lib/usePersistentState.ts';
 
 export const FeatureID = "logs";
 export const FeatureName = "Logs";
+export const FeatureIcon = "https://raw.githubusercontent.com/grafana/loki/refs/heads/main/docs/sources/logo.png";
 
 const ROW_BANNER = new TextPanelBuilder()
   .title("")
