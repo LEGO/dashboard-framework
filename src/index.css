@@ -207,6 +207,12 @@ body {
   transition: all var(--duration-fast) ease;
 }
 
+/* Override styling to avoid double padding for primereact component */
+.form-input.p-autocomplete {
+  padding: 0;
+  border: 0;
+}
+
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
@@ -599,6 +605,24 @@ input:checked+.toggle-slider:before {
 .p-autocomplete.error .p-inputtext:focus {
   border-color: var(--color-error);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.4);
+}
+
+/* Novus resource selection */
+ul.novus-resources {
+  list-style: none;
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-primary);
+}
+
+li.novus-resource {
+  margin: auto;
+}
+
+li.novus-resource > input {
+  margin-right: 10px;
+  background-color: var(--color-primary);
+  height: 1.2rem;
+  width: 1.2rem;
 }
 
 @media (max-width: 640px) {

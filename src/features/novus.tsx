@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "react-oidc-context";
-import { useEnv } from '../components/env.tsx';
+import { useEnv } from "../components/env.tsx";
 
-import { AutoComplete } from 'primereact/autocomplete';
+import { AutoComplete } from "primereact/autocomplete";
 
 import {
   PanelBuilder,
@@ -10,16 +10,19 @@ import {
   AdHocVariableBuilder,
   VariableHide,
   ThresholdsConfigBuilder,
-  ThresholdsMode
+  ThresholdsMode,
+  MappingType,
+  defaultValueMappingResult,
+  FieldColorModeId,
 } from "@grafana/grafana-foundation-sdk/dashboard";
 
-import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
-import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
+import { DataqueryBuilder as PrometheusDataqueryBuilder, PromQueryFormat } from "@grafana/grafana-foundation-sdk/prometheus";
+import { PanelBuilder as StatsPanelBuilder } from "@grafana/grafana-foundation-sdk/stat";
 
 import {
   PanelBuilder as TextPanelBuilder,
-  TextMode
-} from '@grafana/grafana-foundation-sdk/text';
+  TextMode,
+} from "@grafana/grafana-foundation-sdk/text";
 
 import { usePersistentState } from "../lib/usePersistentState.ts";
 
@@ -27,7 +30,8 @@ import { queryPrometheus } from "../lib/prometheusQuerier.ts";
 
 export const FeatureID = "novus";
 export const FeatureName = "Novus Runtime Information";
-export const FeatureIcon = "https://raw.githubusercontent.com/kubernetes/kubernetes/refs/heads/master/logo/logo.svg";
+export const FeatureIcon =
+  "https://raw.githubusercontent.com/kubernetes/kubernetes/refs/heads/master/logo/logo.svg";
 
 // Boilerplate library panel definitions for Novus.
 // Replace UIDs with the actual library panel UIDs from your Grafana instance.
@@ -47,21 +51,19 @@ const NOVUS_BANNER = new TextPanelBuilder()
   .transparent(true)
   .mode(TextMode.HTML)
   .span(24)
-  .height(3)
-  .content(`
+  .height(3).content(`
     <div style="display: flex; height:100%; background: linear-gradient(135deg, #780000 0%, #003049 50%); color: white; border-radius: 12px; align-items: center; text-align: center;">
       <div style="width: 100%;">
         <h2 style="margin: 0; font-size: 2em; font-weight: 700;">
           <img src="https://raw.githubusercontent.com/kubernetes/kubernetes/refs/heads/master/logo/logo.svg" style="height: 1em; width: auto;" alt="Kubernetes Logo">
-          Novus Telemetry
+          <a href="https://grafana.istar.thelegogroup.com/d/fdwat7xhijda8b/novus-runtime-overview?orgId=1&from=now-2d&to=now&timezone=browser&var-namespace=\${namespace}&var-no_runtimes=455&var-no_onpremise_runtimes=311&var-is_openshift=0&refresh=auto">Novus Telemetry</a>
         </h2>
         <p style="margin: 0; font-size: 1em; opacity: 0.95;">
          Telemetry data for workloads running in Novus, Kubernetes Container Platform
         </p>
       </div>
     </div>
-  `)
-
+  `);
 
 export function Component({ goBack, goForward, setDashboardPanels }) {
   const [errors, setErrors] = useState({});
@@ -69,12 +71,20 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState("");
   const [deployments, setDeployments] = useState([]);
+  const [statefulsets, setStatefulsets] = useState([]);
+  const [haproxyIngresses, setHaproxyIngresses] = useState([]);
+  const [nginxIngresses, setNginxIngresses] = useState([]);
   const auth = useAuth();
   const env = useEnv();
   const [formData, setFormData] = usePersistentState("feat_novus_formData", {
     runtime: "",
-    deployments: [],
     showRecommendations: false,
+    resources: {
+      deployments: [],
+      statefulsets: [],
+      nginxHosts: [],
+      haproxyIngresses: [],
+    }
   });
 
   const host = env?.["BUN_PUBLIC_PROMETHEUS_ENDPOINT"];
@@ -85,28 +95,44 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
       'group(kube_namespace_labels{label_novus_legogroup_io_namespace_type="managed-customer-runtime", label_novus_legogroup_io_team_name!=""}) by (label_novus_legogroup_io_team_name)',
       auth?.user?.id_token,
     ).then((result) => {
-      return result.data.result.map((item: any) => item.metric.label_novus_legogroup_io_team_name);
+      return result.data.result.map(
+        (item: any) => item.metric.label_novus_legogroup_io_team_name,
+      );
     });
   };
 
   const getAllRuntimes = () => {
     let query = `group(kube_namespace_labels{label_novus_legogroup_io_namespace_type="managed-customer-runtime", label_novus_legogroup_io_team_name!=""}) by (namespace, label_novus_legogroup_io_team_name)`;
-    return queryPrometheus(
-      host, query, auth?.user?.id_token).then((result) => {
+    return queryPrometheus(host, query, auth?.user?.id_token).then((result) => {
       return result.data.result.map((item: any) => ({
         namespace: item.metric.namespace,
         team: item.metric.label_novus_legogroup_io_team_name,
       }));
     });
-  }
+  };
 
-  const [allTeams, setAllTeams] = useState<Promise<string[]>>(Promise.resolve([]));
-  const [allRuntimes, setAllRuntimes] = useState<Promise<{namespace: string, team: string}[]>>(Promise.resolve([]));
+  const getFirstTeam = () => {
+    let query = `group(novus_user_team_membership{user="${auth?.user?.profile?.upn.toLowerCase()}"}) by (team)`;
+    return queryPrometheus(host, query, auth?.user?.id_token).then((result) => {
+      return result.data.result[0].metric.team;
+    });
+  };
+
+  const [allTeams, setAllTeams] = useState<Promise<string[]>>(
+    Promise.resolve([]),
+  );
+  const [allRuntimes, setAllRuntimes] = useState<
+    Promise<{ namespace: string; team: string }[]>
+  >(Promise.resolve([]));
 
   useEffect(() => {
     if (!auth?.isAuthenticated) return;
     setAllTeams(getTeams());
     setAllRuntimes(getAllRuntimes());
+  }, [auth?.isAuthenticated]);
+
+  useEffect(() => {
+    getFirstTeam().then((res) => setSelectedTeam(res));
   }, [auth?.isAuthenticated]);
 
   const searchTeams = (event) => {
@@ -118,110 +144,187 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
         }
       });
       setTeams(ts);
-    })
-  }
+    });
+  };
 
   const searchRuntimes = (event) => {
     let rts: any[] = [];
-    allRuntimes.then((items: Array<{namespace: string, team: string}>) => {
+    allRuntimes.then((items: Array<{ namespace: string; team: string }>) => {
       items.forEach((r) => {
-        if (r.namespace.toLowerCase().includes(event.query.toLowerCase()) && (!selectedTeam || r.team === selectedTeam)) {
+        if (
+          r.namespace.toLowerCase().includes(event.query.toLowerCase()) &&
+          (!selectedTeam || r.team === selectedTeam)
+        ) {
           rts.push(r.namespace);
         }
       });
       setRuntimes(rts);
-    })
-  }
+    });
+  };
 
-  useEffect(() => {
-    if (!auth?.isAuthenticated || formData.runtime === "") return;
-    formData.deployments = [];
+  const fetchDeployments = () => {
     queryPrometheus(
       host,
       `group(kube_deployment_spec_replicas{namespace="${formData.runtime}"}) by (deployment)`,
       auth?.user?.id_token,
     ).then((result) => {
-      setDeployments(result.data.result.map((item: any) => item.metric.deployment));
+      setDeployments(
+        result.data.result.map((item: any) => item.metric.deployment),
+      );
     });
-  }, [host, auth?.isAuthenticated, formData.runtime])
+  }
+  const fetchIngresses = () => {
+    queryPrometheus(
+      host,
+      `group(nginx_ingress_controller_requests{namespace="${formData.runtime}"}) by (host)`,
+      auth?.user?.id_token,
+    ).then((result) => {
+      setNginxIngresses(
+        result.data.result.map((item: any) => item.metric.host),
+      );
+    });
+  }
+  const fetchStatefulsets = () => {
+    queryPrometheus(
+      host,
+      `group(kube_statefulset_status_replicas{namespace="${formData.runtime}"}) by (statefulset)`,
+      auth?.user?.id_token,
+    ).then((result) => {
+      setStatefulsets(
+        result.data.result.map((item: any) => item.metric.statefulset),
+      );
+    });
+  }
+
+  useEffect(() => {
+    if (!auth?.isAuthenticated || formData.runtime === "") return;
+    formData.resources = {}
+    fetchDeployments();
+    fetchIngresses();
+    fetchStatefulsets();
+  }, [host, auth?.isAuthenticated, formData.runtime]);
 
   const genVariables = () => {
     const podFilter = new AdHocVariableBuilder("novus_pod_filter")
       .hide(VariableHide.HideVariable)
       .datasource({ uid: "$prometheus" })
       .build();
-    podFilter.filters = [
-      { key: "pod", operator: "!~", value: "novus-.*" },
-    ];
+    podFilter.filters = [{ key: "pod", operator: "!~", value: "novus-.*" }];
 
     return [
       new ConstantVariableBuilder("namespace")
         .label("Novus Runtime / namespace")
         .value(formData.runtime),
       { build: () => podFilter },
-          ];
+    ];
   };
 
   const genOverviewPanels = () => {
     let overviewPanels = [];
 
     overviewPanels = overviewPanels.concat([
-      // Shows Pods Running
-      new StatsPanelBuilder()
-        .title("Novus: Pods Ready")
-        .description(`
-          Kubernetes Pods that are healthy, ready to work, and accept
-          requests. If this number is correct, and the app has errors,
-          then the issue does not involve with the container platform.
-        `.replace(/\s+/g, ' ').trim())
-        .height(4)
-        .thresholds(new ThresholdsConfigBuilder().mode(ThresholdsMode.Absolute).steps([{value: 0.0, color: "green"}]))
-        .interval("5m")
-        .withTarget(
-          new PrometheusDataqueryBuilder()
-            .datasource({ uid: "$prometheus" })
-            .expr(`sum(kube_pod_status_phase{phase="Running", namespace="$namespace"})`)
-            .instant()
-        ),
       // Shows Pods Pending, errors
       new StatsPanelBuilder()
-        .title("Novus: Pods not Ready")
-        .thresholds(new ThresholdsConfigBuilder().mode(ThresholdsMode.Absolute).steps([{value: 0.0, color: "red"}]))
-        .description(`
+        .title("Novus: Unready Pods")
+        .thresholds(
+          new ThresholdsConfigBuilder()
+            .mode(ThresholdsMode.Absolute)
+            .steps([{ value: 1.0, color: "red" }]),
+        )
+        .description(
+          `
           Kubernetes Pods that are either pending, with errors or uknown
           state. Might signal an upgrade or errors. If this number is not 0,
           and the app has errors, then the issue might involve container
           platform, or a botched released! Oppsie!
-        `.replace(/\s+/g, ' ').trim())
+        `
+            .replace(/\s+/g, " ")
+            .trim(),
+        )
         .height(4)
         .interval("5m")
         .withTarget(
           new PrometheusDataqueryBuilder()
             .datasource({ uid: "$prometheus" })
-            .expr(`sum(kube_pod_status_phase{phase=~"(Failed|Unknown|Pending)", namespace="$namespace"})`)
-            .instant()
-          )
+            .expr(
+              `sum(kube_pod_status_phase{phase=~"(Failed|Unknown|Pending)", namespace="$namespace"})`,
+            )
+            .instant(),
+        ),
     ]);
 
-    formData.deployments.forEach((deployment) => {
+    let deployRegex = formData?.resources?.deployments?.join("|")
+
+    if (deployRegex !== "") {
       overviewPanels.push(
         new StatsPanelBuilder()
-          .title(`Novus: ${deployment} Pods Ready`)
-          .description(`
-            Kubernetes Pods for deployment ${deployment} that are healthy, ready to work, and accept
-            requests. If this number is correct, and the app has errors,
-            then the issue does not involve with the container platform.
-          `.replace(/\s+/g, ' ').trim())
-          .height(4)
-          .thresholds(new ThresholdsConfigBuilder().mode(ThresholdsMode.Absolute).steps([{value: 0.0, color: "green"}]))
-          .interval("5m")
-          .withTarget(
-            new PrometheusDataqueryBuilder()
-              .datasource({ uid: "$prometheus" })
-              .expr(`max(kube_deployment_status_replicas_available{deployment="${deployment}", namespace="$namespace"})`)
-              .instant()
+        .title("Novus Deployments")
+        .description(
+          `
+          Kubernetes deployments statuses
+          `.replace(/\s+/g, " ")
+          .trim()
+        )
+        .height(4)
+        .withTarget(
+          new PrometheusDataqueryBuilder()
+          .datasource({ uid: "$prometheus" })
+          .expr(
+            `max(kube_deployment_status_condition{namespace=~"$namespace", condition="Available", deployment=~"${deployRegex}", status="true"}) by (deployment)`
           )
-      );
+          .legendFormat("{{deployment}}")
+          .instant()
+        )
+        .wideLayout(false)
+        .mappings([
+          {
+            type: MappingType.ValueToText,
+            options: {
+              "0": { "text": "Unhealthy", "color": "red"},
+              "1": { "text": "Healthy", "color": "green"}
+            }
+          }
+        ])
+        
+      )
+    }
+    
+    // let nginxHostRegex = formData?.resources?.nginxHosts.join("|")
+
+    formData?.resources?.nginxHosts?.forEach((host) => {
+      overviewPanels.push(
+        new StatsPanelBuilder()
+        .title(host)
+        .description("An overview of the response codes returned by the ingresses with this host over the time frame selected in the dashboard")
+        .height(4)
+        .withTarget(
+          new PrometheusDataqueryBuilder()
+          .datasource({ uid: "$prometheus" })
+          .expr(
+            `floor(sum(increase(nginx_ingress_controller_requests{namespace="$namespace", host="${host}", status=~"[1-3].."}[$__range])))`
+          )
+          .legendFormat("Successes")
+        )
+        .withTarget(
+          new PrometheusDataqueryBuilder()
+          .datasource({ uid: "$prometheus" })
+          .expr(
+            `floor(sum(increase(nginx_ingress_controller_requests{namespace="$namespace", host="${host}", status=~"4.."}[$__range])))`
+          )
+          .legendFormat("4xx's")
+        )
+        .withTarget(
+          new PrometheusDataqueryBuilder()
+          .datasource({ uid: "$prometheus" })
+          .expr(
+            `floor(sum(increase(nginx_ingress_controller_requests{namespace="$namespace", host="${host}", status=~"5.."}[$__range])))`
+          )
+          .legendFormat("5xx's")
+        )
+        .overrideByQuery("A", [{id: "color", value: {mode: FieldColorModeId.Fixed, fixedColor: "green"}}])
+        .overrideByQuery("B", [{id: "color", value: {mode: FieldColorModeId.Fixed, fixedColor: "orange"}}])
+        .overrideByQuery("C", [{id: "color", value: {mode: FieldColorModeId.Fixed, fixedColor: "red"}}])
+      )
     })
 
     return overviewPanels;
@@ -251,14 +354,65 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
 
   const onSubmit = () => {
     if (!validate()) return;
-    setDashboardPanels(FeatureID, genOverviewPanels(), genPanels(), genVariables());
+    setDashboardPanels(
+      FeatureID,
+      genOverviewPanels(),
+      genPanels(),
+      genVariables(),
+    );
     goForward();
   };
+
+  const resourceIcon = (resourceType: string, height: number) => {
+    let src = `https://raw.githubusercontent.com/kubernetes/community/refs/heads/main/icons/svg/resources/unlabeled/${resourceType}.svg`
+    return (
+      <img height={height} src={src}></img>
+    )
+  }
+
+  const renderResourceList = (resources, formkey, icon, title) => {
+    if (formData.runtime === "") {
+      return (<></>)
+    }
+    if (resources.length <= 0) {
+      return <></>
+    }
+    return (
+      <div className="form-group">
+        <h3>{icon} {title}</h3>
+        <ul className="novus-resources">
+          {resources.map((resource) => (
+            <li className="novus-resource" key={resource}>
+              <input
+                type="checkbox"
+                checked={formData.resources?.[formkey]?.includes(resource)}
+                onChange={(_) => {
+                  formData.resources = formData?.resources || {}
+                  formData.resources[formkey] = formData.resources?.[formkey] || [];
+                  if (formData.resources[formkey].includes(resource)) {
+                    formData.resources[formkey] = formData.resources[formkey].filter(
+                      (r) => r != resource,
+                    );
+                  } else {
+                    formData.resources?.[formkey].push(resource);
+                  }
+                  setFormData({...formData})
+                }}
+                />
+                <span>{resource}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
 
   return (
     <>
       <div className="wizard-content">
-        <h3 style={{ marginBottom: "20px", color: "#1e293b" }}>Novus Configuration</h3>
+        <h3 style={{ marginBottom: "20px", color: "#1e293b" }}>
+          Novus Configuration
+        </h3>
         <p style={{ color: "#64748b", marginBottom: "20px", fontSize: "14px" }}>
           Novus is our internal Kubernetes platform. This feature adds pre-built
           library panels scoped to your runtime.
@@ -271,8 +425,11 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             suggestions={teams}
             completeMethod={searchTeams}
             onChange={(e) => setSelectedTeam(e.value)}
-            dropdownMode="current"
+            dropdown
           />
+          <div className="form-hint">
+            Name of the team owning the runtime. Defaults to your team
+          </div>
         </div>
 
         <div className="form-group">
@@ -282,8 +439,8 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             suggestions={runtimes}
             completeMethod={searchRuntimes}
             onChange={(e) => setFormData({ ...formData, runtime: e.value })}
-            dropdownMode="current"
             className={`form-input ${errors.runtime ? "error" : ""}`}
+            dropdown
           />
           {errors.runtime && (
             <div className="form-error">⚠️ {errors.runtime}</div>
@@ -293,28 +450,6 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
           </div>
         </div>
 
-        {formData.runtime != "" && deployments.length > 0 && (
-          <ul>
-            {deployments.map((deployment) => (
-              <li key={deployment}>
-                <input
-                  type="checkbox"
-                  checked={formData.deployments?.includes(deployment)}
-                  onChange={_ => {
-                    formData.deployments = formData.deployments || [];
-                    if (formData.deployments.includes(deployment)) {
-                      formData.deployments = formData.deployments.filter(d => d != deployment);
-                    } else {
-                      formData.deployments.push(deployment);
-                    }
-                    setFormData({...formData});
-                  }}
-                />
-                {deployment}
-              </li>
-            ))}
-          </ul>
-        )}
         <div className="form-group">
           <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer' }}>
             <div className="toggle-switch">
@@ -329,6 +464,9 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
           </label>
           <div className="form-hint">Include CPU and Memory request recommendation tables in the dashboard</div>
         </div>
+        {renderResourceList(nginxIngresses, "nginxHosts", resourceIcon("ing", 25), "Ingresses")}
+        {renderResourceList(deployments, "deployments", resourceIcon("deploy", 25), "Deployments")}
+        {renderResourceList(statefulsets, "statefulsets", resourceIcon("sts", 25), "Statefulsets")}
       </div>
 
       <div className="wizard-footer">
