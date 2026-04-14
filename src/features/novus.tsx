@@ -36,6 +36,8 @@ const NOVUS_LIBRARY_PANELS = [
   { name: "Novus CPU Usage", uid: "affw0w9ciuw3kf" },
   { name: "Novus Memory Usage", uid: "affw0vxt0u03kd" },
   { name: "Novus Policy Alerts", uid: "ffee6egctyio0e" },
+  { name: "CPU Requests Recommendations", uid: "bfio81viwd4hse", height: 11, span: 24 },
+  { name: "Memory Requests Recommendations", uid: "afio83xesz08wf", height: 11, span: 24 },
 ];
 
 // A banner aded before every other panel to introduce people to that specific
@@ -228,8 +230,8 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
     return [NOVUS_BANNER].concat(NOVUS_LIBRARY_PANELS.map((panel) =>
       new PanelBuilder()
         .title(panel.name)
-        .height(8)
-        .span(12)
+        .height(panel.height || 8)
+        .span(panel.span || 12)
         .libraryPanel({ name: panel.name, uid: panel.uid })
     ));
   };
