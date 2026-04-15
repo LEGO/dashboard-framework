@@ -14,9 +14,9 @@ import {
 import { useEnv } from '../components/env.tsx';
 
 const DEFAULT_VAR_LOKI_DATASOURCE = new DatasourceVariableBuilder("loki")
-  .label("Metrics Data source")
+  .label("Logs Data source")
   .type("loki")
-  .regex("(?!grafanacloud-usage|grafanacloud-ml-metrics).+")
+  .regex("(?!grafanacloud).+(?!-alert-state-history|-usage-insight)")
   .multi(false);
 
 const DEFAULT_VAR_PROMETHEUS_DATASOURCE = new DatasourceVariableBuilder("prometheus")
