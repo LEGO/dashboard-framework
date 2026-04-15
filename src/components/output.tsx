@@ -1,6 +1,7 @@
 import {
   DashboardBuilder,
   DashboardCursorSync,
+  DatasourceVariableBuilder,
   RowBuilder,
   TimePickerBuilder,
 } from '@grafana/grafana-foundation-sdk/dashboard';
@@ -11,6 +12,19 @@ import {
 } from '@grafana/grafana-foundation-sdk/text';
 
 import { useEnv } from '../components/env.tsx';
+
+const DEFAULT_VAR_LOKI_DATASOURCE = new DatasourceVariableBuilder("loki")
+  .label("Metrics Data source")
+  .type("loki")
+  .regex("(?!grafanacloud-usage|grafanacloud-ml-metrics).+")
+  .multi(false);
+
+const DEFAULT_VAR_PROMETHEUS_DATASOURCE = new DatasourceVariableBuilder("prometheus")
+  .label("Metrics Data source")
+  .type("prometheus")
+  .regex("(?!grafanacloud-usage|grafanacloud-ml-metrics).+")
+  .multi(false);
+
 
 export default function Component({ goBack, goForward, dashboardData }) {
   const env = useEnv();
@@ -42,6 +56,16 @@ export default function Component({ goBack, goForward, dashboardData }) {
         }
       });
     });
+
+    // Check and add loki and prometheus datasources if they were not set.
+
+    if(!seenVariables.has("loki")){
+      seenVariables.set("loki", DEFAULT_VAR_LOKI_DATASOURCE);
+    }
+
+    if(!seenVariables.has("prometheus")){
+      seenVariables.set("prometheus", DEFAULT_VAR_PROMETHEUS_DATASOURCE);
+    }
 
     seenVariables.forEach((variable) => {
       dashboard = dashboard.withVariable(variable);
