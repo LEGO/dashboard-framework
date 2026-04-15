@@ -1,7 +1,6 @@
 import {
   DashboardBuilder,
   DashboardCursorSync,
-  DatasourceVariableBuilder,
   RowBuilder,
   TimePickerBuilder,
 } from '@grafana/grafana-foundation-sdk/dashboard';
@@ -28,27 +27,24 @@ export default function Component({ goBack, goForward, dashboardData }) {
         new TimePickerBuilder()
           .refreshIntervals(["1m", "5m", "15m", "30m", "1h", "6h", "1d", "7d"])
       )
-      .withVariable(
-        new DatasourceVariableBuilder("prometheus")
-          .label("Metrics Data source")
-          .type("prometheus")
-          .regex("(?!grafanacloud-usage|grafanacloud-ml-metrics).+")
-          .multi(false)
-      )
-      .withVariable(
-        new DatasourceVariableBuilder("loki")
-          .label("Logs Data source")
-          .type("loki")
-          .regex("(?!grafanacloud.+usage-insights|grafanacloud.+alert-state-history).+")
-          .multi(false)
-      );
 
-    // Inject variables contributed by enabled features
+    // Inject variables contributed by enabled features, deduplicating by name
+    // so that multiple features using the same datasource type (ex: prometheus,
+    // loki) don't produce duplicate variables in the output.
+    const seenVariables = new Map();
+    // TODO: Mayyybe there is a better way for this to avoid dupes sources
     dashboardData.features.forEach((feat) => {
       if (!feat.enabled) return;
       feat.variables.forEach((variable) => {
-        dashboard = dashboard.withVariable(variable);
+        const built = variable.build();
+        if (!seenVariables.has(built.name)) {
+          seenVariables.set(built.name, variable);
+        }
       });
+    });
+
+    seenVariables.forEach((variable) => {
+      dashboard = dashboard.withVariable(variable);
     });
 
     dashboard = dashboard.withRow(new RowBuilder("Overview"));
