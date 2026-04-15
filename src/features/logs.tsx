@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
-import { DataqueryBuilder as LokiDataqueryBuilder } from '@grafana/grafana-foundation-sdk/loki';
-import { PanelBuilder as LogsPanelBuilder } from '@grafana/grafana-foundation-sdk/logs';
-import { LogsDedupStrategy } from '@grafana/grafana-foundation-sdk/common';
-import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
 import { BigValueGraphMode } from '@grafana/grafana-foundation-sdk/common';
+import { DataqueryBuilder as LokiDataqueryBuilder } from '@grafana/grafana-foundation-sdk/loki';
+import { DatasourceVariableBuilder } from "@grafana/grafana-foundation-sdk/dashboard";
+import { LogsDedupStrategy } from '@grafana/grafana-foundation-sdk/common';
+import { PanelBuilder as LogsPanelBuilder } from '@grafana/grafana-foundation-sdk/logs';
+import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
 
 import {
   PanelBuilder as TextPanelBuilder,
@@ -78,6 +79,16 @@ export function Component({ goBack, goForward, setDashboardPanels }){
     ]
   };
 
+  const genVariables = () => {
+    return [
+      new DatasourceVariableBuilder("loki")
+        .label("Logs Data source")
+        .type("loki")
+        .regex("(?!grafanacloud.+usage-insights|grafanacloud.+alert-state-history).+")
+        .multi(false)
+    ];
+  };
+
   const validate = () => {
     const newErrors = {};
     if (formData.service_name.length == 0) {
@@ -90,7 +101,7 @@ export function Component({ goBack, goForward, setDashboardPanels }){
 
   const onSubmit = () => {
     if (!validate()) return;
-    setDashboardPanels(FeatureID, genOverviewPanels(), genPanels());
+    setDashboardPanels(FeatureID, genOverviewPanels(), genPanels(), genVariables());
     goForward();
   }
 

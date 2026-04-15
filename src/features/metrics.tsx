@@ -1,9 +1,10 @@
-import { PanelBuilder as TimeSeriesPanelBuilder } from '@grafana/grafana-foundation-sdk/timeseries';
-import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
-import { VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
-import { PanelBuilder as TextPanelBuilder, TextMode } from '@grafana/grafana-foundation-sdk/text';
-
 import { useState } from 'react';
+
+import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
+import { DatasourceVariableBuilder } from "@grafana/grafana-foundation-sdk/dashboard";
+import { PanelBuilder as TextPanelBuilder, TextMode } from '@grafana/grafana-foundation-sdk/text';
+import { PanelBuilder as TimeSeriesPanelBuilder } from '@grafana/grafana-foundation-sdk/timeseries';
+import { VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
 
@@ -63,9 +64,19 @@ export function Component({ goBack, goForward, setDashboardPanels }){
     return Object.keys(newErrors).length === 0
   }
 
+  const genVariables = () => {
+    return [
+      new DatasourceVariableBuilder("prometheus")
+        .label("Metrics Data source")
+        .type("prometheus")
+        .regex("(?!grafanacloud-usage|grafanacloud-ml-metrics).+")
+        .multi(false)
+     ];
+  };
+
   const onSubmit = () => {
     if (!validate()) return;
-    setDashboardPanels(FeatureID, [], genPanels());
+    setDashboardPanels(FeatureID, [], genPanels(), genVariables());
     goForward();
   }
 

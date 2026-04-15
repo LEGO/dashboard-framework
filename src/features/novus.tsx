@@ -1,18 +1,18 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { useAuth } from "react-oidc-context";
-import { useEnv } from "../components/env.tsx";
 
 import { AutoComplete } from "primereact/autocomplete";
 
 import {
-  PanelBuilder,
-  ConstantVariableBuilder,
   AdHocVariableBuilder,
-  VariableHide,
+  ConstantVariableBuilder,
+  DatasourceVariableBuilder,
+  FieldColorModeId,
+  MappingType,
+  PanelBuilder,
   ThresholdsConfigBuilder,
   ThresholdsMode,
-  MappingType,
-  FieldColorModeId,
+  VariableHide,
 } from "@grafana/grafana-foundation-sdk/dashboard";
 
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from "@grafana/grafana-foundation-sdk/prometheus";
@@ -21,6 +21,7 @@ import { PanelBuilder as TextPanelBuilder, TextMode } from "@grafana/grafana-fou
 
 import { usePersistentState } from "../lib/usePersistentState.ts";
 import { queryPrometheus } from "../lib/prometheusQuerier.ts";
+import { useEnv } from "../components/env.tsx";
 
 export const FeatureID = "novus";
 export const FeatureName = "Novus Runtime Information";
@@ -92,7 +93,23 @@ function buildVariables(runtime: string) {
     .build();
   podFilter.filters = [{ key: "pod", operator: "!~", value: "novus-.*" }];
 
+  const promDatasource = new DatasourceVariableBuilder("prometheus")
+    .label("Metrics Data source")
+    .hide(VariableHide.HideVariable)
+    .type("prometheus")
+    .regex(".+Novus.+")
+    .multi(false);
+
+  const lokiDatasource = new DatasourceVariableBuilder("loki")
+    .label("Logs Data source")
+    .hide(VariableHide.HideVariable)
+    .type("loki")
+    .regex(".+Novus.+")
+    .multi(false)
+
   return [
+    promDatasource,
+    lokiDatasource,
     new ConstantVariableBuilder("namespace")
       .label("Novus Runtime / namespace")
       .value(runtime),
