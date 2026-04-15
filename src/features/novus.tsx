@@ -93,13 +93,14 @@ function buildVariables(runtime: string) {
     .build();
   podFilter.filters = [{ key: "pod", operator: "!~", value: "novus-.*" }];
 
+  // We know that Novus users have data for prom and loki in Novus' datasources
+  // so we try to be smort and set them.
   const promDatasource = new DatasourceVariableBuilder("prometheus")
     .label("Metrics Data source")
     .hide(VariableHide.HideVariable)
     .type("prometheus")
     .regex(".+Novus.+")
     .multi(false);
-
   const lokiDatasource = new DatasourceVariableBuilder("loki")
     .label("Logs Data source")
     .hide(VariableHide.HideVariable)

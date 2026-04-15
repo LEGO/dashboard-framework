@@ -64,19 +64,9 @@ export function Component({ goBack, goForward, setDashboardPanels }){
     return Object.keys(newErrors).length === 0
   }
 
-  const genVariables = () => {
-    return [
-      new DatasourceVariableBuilder("prometheus")
-        .label("Metrics Data source")
-        .type("prometheus")
-        .regex("(?!grafanacloud-usage|grafanacloud-ml-metrics).+")
-        .multi(false)
-     ];
-  };
-
   const onSubmit = () => {
     if (!validate()) return;
-    setDashboardPanels(FeatureID, [], genPanels(), genVariables());
+    setDashboardPanels(FeatureID, [], genPanels());
     goForward();
   }
 
