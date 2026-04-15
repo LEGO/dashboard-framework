@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
-import { DatasourceVariableBuilder } from "@grafana/grafana-foundation-sdk/dashboard";
 import { PanelBuilder as TextPanelBuilder, TextMode } from '@grafana/grafana-foundation-sdk/text';
 import { PanelBuilder as TimeSeriesPanelBuilder } from '@grafana/grafana-foundation-sdk/timeseries';
 import { VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
