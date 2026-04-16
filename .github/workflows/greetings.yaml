@@ -1,0 +1,30 @@
+name: Greetings
+
+on:
+  pull_request:
+    types:
+      - opened
+  issues:
+    types:
+      - opened
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  greeting:
+    runs-on: ubuntu-slim
+    steps:
+    - uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d # v3.1.0
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        issue_message: |
+          👋  Hi there! Welcome and thank you so much for contributing to our community!
+
+          If your issue don't get attention from the community, make sure to make some noise and tag the contributors 🥳
+
+        pr_message: |
+          👋 Hi there! Your first PR? That's just totally AWESOME! Keep 'em coming! 🙌
+
+          Make sure to read the CONTRIBUTING guidelines! The community mike tame some time to give you feedback!
