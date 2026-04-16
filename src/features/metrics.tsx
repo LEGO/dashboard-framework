@@ -1,9 +1,9 @@
-import { PanelBuilder as TimeSeriesPanelBuilder } from '@grafana/grafana-foundation-sdk/timeseries';
-import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
-import { VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
-import { PanelBuilder as TextPanelBuilder, TextMode } from '@grafana/grafana-foundation-sdk/text';
-
 import { useState } from 'react';
+
+import { DataqueryBuilder as PrometheusDataqueryBuilder } from '@grafana/grafana-foundation-sdk/prometheus';
+import { PanelBuilder as TextPanelBuilder, TextMode } from '@grafana/grafana-foundation-sdk/text';
+import { PanelBuilder as TimeSeriesPanelBuilder } from '@grafana/grafana-foundation-sdk/timeseries';
+import { VizLegendOptionsBuilder } from '@grafana/grafana-foundation-sdk/common';
 
 import { usePersistentState } from '../lib/usePersistentState.ts';
 

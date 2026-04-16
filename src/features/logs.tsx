@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
-import { DataqueryBuilder as LokiDataqueryBuilder } from '@grafana/grafana-foundation-sdk/loki';
-import { PanelBuilder as LogsPanelBuilder } from '@grafana/grafana-foundation-sdk/logs';
-import { LogsDedupStrategy } from '@grafana/grafana-foundation-sdk/common';
-import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
 import { BigValueGraphMode } from '@grafana/grafana-foundation-sdk/common';
+import { DataqueryBuilder as LokiDataqueryBuilder } from '@grafana/grafana-foundation-sdk/loki';
+import { LogsDedupStrategy } from '@grafana/grafana-foundation-sdk/common';
+import { PanelBuilder as LogsPanelBuilder } from '@grafana/grafana-foundation-sdk/logs';
+import { PanelBuilder as StatsPanelBuilder } from '@grafana/grafana-foundation-sdk/stat';
 
 import {
   PanelBuilder as TextPanelBuilder,
