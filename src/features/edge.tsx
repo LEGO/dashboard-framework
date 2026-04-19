@@ -34,7 +34,7 @@ interface Props {
 
 // ---- Data hook ----
 
-const valkeyRegex = /(.*?)(?:-(?:valkey-)?metrics$)/;
+const valkeyRegex = /^(.*?)(?:-(?:valkey-)?metrics)$/;
 
 function useEdgeData(
   host: string | undefined,
@@ -72,7 +72,7 @@ function useEdgeData(
       setValkeys(
         result.data.result.map((item: any) => ({
           valkey_cluster:
-            item.metric.service.matchAll(valkeyRegex)?.[1] ??
+            item.metric.service.match(valkeyRegex)?.[1] ??
             item.metric.service,
           novus_region: item.metric.novus_region,
         })),
@@ -101,7 +101,7 @@ function useEdgeData(
 
 // ---- Panel builders (pure, no React) ----
 
-function buildPanels(cluster: string, queueFilter: string) {
+function buildRabbitPanels(cluster: string, queueFilter: string) {
   return [
     new TimeSeriesPanelBuilder()
       .title("Queues")
@@ -118,6 +118,31 @@ function buildPanels(cluster: string, queueFilter: string) {
   ];
 }
 
+function buildValkeyPanels(cluster: string) {
+  return [
+    new TimeSeriesPanelBuilder()
+      .title(`${cluster}: Commands`)
+      .height(8)
+      .span(12)
+      .withTarget(
+        new PrometheusDataqueryBuilder()
+          .datasource({ uid: "$prometheus" })
+          .expr(`sum(rate(redis_commands_total{service=~"${cluster}(-valkey)?-metrics"}[$__rate_interval])) by (cmd)`)
+          .legendFormat(`{{ cmd }}`),
+      ),
+    new TimeSeriesPanelBuilder()
+      .title(`${cluster}: Memory`)
+      .height(8)
+      .span(12)
+      .withTarget(
+        new PrometheusDataqueryBuilder()
+          .datasource({ uid: "$prometheus" })
+          .expr(`redis_memory_used_bytes{service=~"${cluster}(-valkey)?-metrics"}`)
+          .legendFormat(`{{ instance }}`),
+      ),
+  ];
+}
+
 // ---- Component ----
 
 export function Component({ goBack, goForward, setDashboardPanels }: Props) {
@@ -126,13 +151,18 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
   const host = env?.["BUN_PUBLIC_PROMETHEUS_ENDPOINT"];
   const token = auth?.user?.id_token;
 
-  const [selectedRabbitCluster, setSelectedRabbitCluster] = useState<Rabbit | undefined>();
+  const [rabbitValue, setRabbitValue] = useState<Rabbit | string | undefined>();
   const [filteredRabbitClusters, setFilteredRabbitClusters] = useState<Rabbit[]>([]);
   const [queueFilter, setQueueFilter] = useState(".*");
+  const [valkeyValue, setValkeyValue] = useState<Valkey | string | undefined>();
+  const [filteredValkeyClusters, setFilteredValkeyClusters] = useState<Valkey[]>([]);
+
+  const selectedRabbitCluster = typeof rabbitValue === "object" ? rabbitValue : undefined;
+  const selectedValkeyCluster = typeof valkeyValue === "object" ? valkeyValue : undefined;
 
   const { rabbits, valkeys, queues } = useEdgeData(host, token, !!auth?.isAuthenticated, selectedRabbitCluster);
 
-  const filteredQueues = queues.filter((q) => q.queue.match(queueFilter));
+  const filteredQueues = queues.filter((q) => q.queue.match(`^${queueFilter}$`));
 
   const searchRabbitClusters = useCallback(
     (event: { query: string }) => {
@@ -160,15 +190,38 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
     </div>
   );
 
+  const searchValkeyClusters = useCallback(
+    (event: { query: string }) => {
+      if (!event.query.trim()) {
+        setFilteredValkeyClusters(valkeys);
+        return;
+      }
+      const terms = event.query.trim().split(/[-_\s]/);
+      setFilteredValkeyClusters(
+        valkeys.filter((v) =>
+          terms.every(
+            (t) =>
+              v.valkey_cluster.toLowerCase().includes(t) ||
+              v.novus_region.toLowerCase().includes(t),
+          ),
+        ),
+      );
+    },
+    [valkeys],
+  );
+
   const valkeyTemplate = (valkey: Valkey) => (
     <div>
       [{valkey.novus_region.split("-")[0]?.toUpperCase()}] {valkey.valkey_cluster}
     </div>
-  )
+  );
 
   const onSubmit = () => {
-    if (!selectedRabbitCluster) return;
-    setDashboardPanels(FeatureID, [], buildPanels(selectedRabbitCluster.rabbitmq_cluster, queueFilter));
+    const panels = [
+      ...(selectedRabbitCluster ? buildRabbitPanels(selectedRabbitCluster.rabbitmq_cluster, queueFilter) : []),
+      ...(selectedValkeyCluster ? buildValkeyPanels(selectedValkeyCluster.valkey_cluster) : []),
+    ];
+    setDashboardPanels(FeatureID, [], panels);
     goForward?.();
   };
 
@@ -184,10 +237,10 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
           <label className="form-label">What RabbitMQ Cluster are you using?</label>
           <AutoComplete<Rabbit>
             field="rabbitmq_cluster"
-            value={selectedRabbitCluster}
+            value={rabbitValue}
             suggestions={filteredRabbitClusters}
             completeMethod={searchRabbitClusters}
-            onChange={(e) => setSelectedRabbitCluster(e.value?.rabbitmq_cluster ? e.value : undefined)}
+            onChange={(e) => setRabbitValue(e.value)}
             itemTemplate={rabbitTemplate}
             selectedItemTemplate={(rabbit: Rabbit) => rabbit.rabbitmq_cluster}
             dropdown
@@ -217,10 +270,10 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
           <label className="form-label">What Valkey Cluster are you using?</label>
           <AutoComplete<Valkey>
             field="valkey_cluster"
-            value={selectedValkeyCluster}
+            value={valkeyValue}
             suggestions={filteredValkeyClusters}
             completeMethod={searchValkeyClusters}
-            onChange={(e) => setSelectedValkeyCluster(e.value?.valkey_cluster ? e.value : undefined)}
+            onChange={(e) => setValkeyValue(e.value)}
             itemTemplate={valkeyTemplate}
             selectedItemTemplate={(valkey: Valkey) => valkey.valkey_cluster}
             dropdown
