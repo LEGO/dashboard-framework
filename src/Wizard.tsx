@@ -9,7 +9,8 @@ import * as FeatureSLO from "./features/slo.tsx";
 import * as FeatureLogs from "./features/logs.tsx";
 import * as FeatureMetrics from "./features/metrics.tsx";
 import * as FeatureNovus from "./features/novus.tsx";
-import * as FeatureEdge from "./features/edge.tsx";
+import * as FeatureRabbitMQ from "./features/rabbitmq.tsx";
+import * as FeatureValkey from "./features/valkey.tsx";
 
 // Hard coded list of features that the users can tunr on/off
 const FEATURES = [
@@ -17,7 +18,8 @@ const FEATURES = [
   FeatureSLO,
   FeatureMetrics,
   FeatureLogs,
-  FeatureEdge,
+  FeatureRabbitMQ,
+  FeatureValkey,
 ];
 
 const DEFAULT_STEPS = [
