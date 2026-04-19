@@ -4,7 +4,7 @@ import { useAuth } from "react-oidc-context";
 import { AutoComplete } from "primereact/autocomplete";
 import { PanelBuilder as TimeSeriesPanelBuilder } from "@grafana/grafana-foundation-sdk/timeseries";
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from "@grafana/grafana-foundation-sdk/prometheus";
-import { useEnv } from '../components/env.tsx';
+import { useEnv } from "../components/env.tsx";
 
 export const FeatureID = "edge";
 export const FeatureName = "Edge Services";
@@ -14,6 +14,11 @@ export const FeatureIcon = "https://www.rabbitmq.com/assets/files/rabbitmq-logo-
 
 interface Rabbit {
   rabbitmq_cluster: string;
+  novus_region: string;
+}
+
+interface Valkey {
+  valkey_cluster: string;
   novus_region: string;
 }
 
@@ -29,6 +34,8 @@ interface Props {
 
 // ---- Data hook ----
 
+const valkeyRegex = /(.*?)(?:-(?:valkey-)?metrics$)/;
+
 function useEdgeData(
   host: string | undefined,
   token: string | undefined,
@@ -37,6 +44,7 @@ function useEdgeData(
 ) {
   const [rabbits, setRabbits] = useState<Rabbit[]>([]);
   const [queues, setQueues] = useState<Queue[]>([]);
+  const [valkeys, setValkeys] = useState<Valkey[]>([]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -48,6 +56,24 @@ function useEdgeData(
       setRabbits(
         result.data.result.map((item: any) => ({
           rabbitmq_cluster: item.metric.rabbitmq_cluster,
+          novus_region: item.metric.novus_region,
+        })),
+      ),
+    );
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    queryPrometheus(
+      host,
+      "group(redis_up{}) by (service, novus_region)",
+      token,
+    ).then((result) =>
+      setValkeys(
+        result.data.result.map((item: any) => ({
+          valkey_cluster:
+            item.metric.service.matchAll(valkeyRegex)?.[1] ??
+            item.metric.service,
           novus_region: item.metric.novus_region,
         })),
       ),
@@ -70,7 +96,7 @@ function useEdgeData(
     );
   }, [isAuthenticated, selectedRabbitCluster]);
 
-  return { rabbits, queues };
+  return { rabbits, valkeys, queues };
 }
 
 // ---- Panel builders (pure, no React) ----
@@ -104,7 +130,7 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
   const [filteredRabbitClusters, setFilteredRabbitClusters] = useState<Rabbit[]>([]);
   const [queueFilter, setQueueFilter] = useState(".*");
 
-  const { rabbits, queues } = useEdgeData(host, token, !!auth?.isAuthenticated, selectedRabbitCluster);
+  const { rabbits, valkeys, queues } = useEdgeData(host, token, !!auth?.isAuthenticated, selectedRabbitCluster);
 
   const filteredQueues = queues.filter((q) => q.queue.match(queueFilter));
 
@@ -130,9 +156,15 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
 
   const rabbitTemplate = (rabbit: Rabbit) => (
     <div>
-      [{rabbit.novus_region.split("-")[0].toUpperCase()}] {rabbit.rabbitmq_cluster}
+      [{rabbit.novus_region.split("-")[0]?.toUpperCase()}] {rabbit.rabbitmq_cluster}
     </div>
   );
+
+  const valkeyTemplate = (valkey: Valkey) => (
+    <div>
+      [{valkey.novus_region.split("-")[0]?.toUpperCase()}] {valkey.valkey_cluster}
+    </div>
+  )
 
   const onSubmit = () => {
     if (!selectedRabbitCluster) return;
@@ -181,6 +213,19 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
             </div>
           </div>
         )}
+        <div className="form-group">
+          <label className="form-label">What Valkey Cluster are you using?</label>
+          <AutoComplete<Valkey>
+            field="valkey_cluster"
+            value={selectedValkeyCluster}
+            suggestions={filteredValkeyClusters}
+            completeMethod={searchValkeyClusters}
+            onChange={(e) => setSelectedValkeyCluster(e.value?.valkey_cluster ? e.value : undefined)}
+            itemTemplate={valkeyTemplate}
+            selectedItemTemplate={(valkey: Valkey) => valkey.valkey_cluster}
+            dropdown
+          />
+        </div>
       </div>
 
       <div className="wizard-footer">
