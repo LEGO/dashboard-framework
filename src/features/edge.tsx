@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { queryPrometheus } from "../lib/prometheusQuerier.ts";
 import { useAuth } from "react-oidc-context";
 import { AutoComplete } from "primereact/autocomplete";
@@ -10,100 +10,74 @@ export const FeatureID = "edge";
 export const FeatureName = "Edge Services";
 export const FeatureIcon = "https://www.rabbitmq.com/assets/files/rabbitmq-logo-e91cacd38fcef5219149bc5cfa10b384.svg";
 
-type Rabbit = {
+// ---- Types ----
+
+interface Rabbit {
   rabbitmq_cluster: string;
   novus_region: string;
-};
+}
 
-type Queue = {
+interface Queue {
   queue: string;
-};
+}
 
-export function Component({ goBack, goForward, setDashboardPanels }) {
+interface Props {
+  goBack?: () => void;
+  goForward?: () => void;
+  setDashboardPanels: (id: string, overview: any[], panels: any[]) => void;
+}
 
-  const auth = useAuth();
-  const env = useEnv();
-  const host = env?.["BUN_PUBLIC_PROMETHEUS_ENDPOINT"];
+// ---- Data hook ----
 
-  const [rabbits, setRabbits] = useState<Rabbit[]>();
-  const [selectedRegion, setSelectedRegion] = useState<string>();
-  const [queues, setQueues] = useState<Queue[]>();
-  const [queueFilter, setQueueFilter] = useState<string>(".*");
-  const [filteredQueues, setFilteredQueues] = useState<Queue[]>();
+function useEdgeData(
+  host: string | undefined,
+  token: string | undefined,
+  isAuthenticated: boolean,
+  selectedRabbitCluster: Rabbit | undefined,
+) {
+  const [rabbits, setRabbits] = useState<Rabbit[]>([]);
+  const [queues, setQueues] = useState<Queue[]>([]);
 
-  const [selectedRabbitCluster, setSelectedRabbitCluster] = useState<Rabbit>();
-  const [filteredRabbitClusters, setFilteredRabbitClusters] = useState<
-    Rabbit[]
-  >([]);
-
-  const getRabbitClusters = () => {
-    return queryPrometheus(
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    queryPrometheus(
       host,
       "group(rabbitmq_identity_info{}) by (rabbitmq_cluster, novus_region)",
-      auth?.user?.id_token,
-    ).then((result) => {
-      return result.data.result.map((item: any) => {
-        return {
+      token,
+    ).then((result) =>
+      setRabbits(
+        result.data.result.map((item: any) => ({
           rabbitmq_cluster: item.metric.rabbitmq_cluster,
           novus_region: item.metric.novus_region,
-        };
-      });
-    });
-  };
+        })),
+      ),
+    );
+  }, [isAuthenticated]);
 
-  const getRabbitQueues = () => {
-    let rabbitmq_cluster = selectedRabbitCluster?.rabbitmq_cluster;
-    if (rabbitmq_cluster === undefined) {
+  useEffect(() => {
+    if (!isAuthenticated || !selectedRabbitCluster) {
       setQueues([]);
+      return;
     }
-    return queryPrometheus(
+    queryPrometheus(
       host,
-      `group(rabbitmq_detailed_queue_messages{service="${rabbitmq_cluster}"}) by (queue)`,
-      auth?.user?.id_token,
-    ).then((result) => {
-      return result.data.result.map((item: any) => {
-        return {
-          queue: item.metric.queue,
-        };
-      });
-    });
-  };
+      `group(rabbitmq_detailed_queue_messages{service="${selectedRabbitCluster.rabbitmq_cluster}"}) by (queue)`,
+      token,
+    ).then((result) =>
+      setQueues(
+        result.data.result.map((item: any) => ({ queue: item.metric.queue })),
+      ),
+    );
+  }, [isAuthenticated, selectedRabbitCluster]);
 
-  const searchRabbitClusters = (event) => {
-    let _filtered: Rabbit[];
-    if (!event.query.trim().length) {
-      _filtered = rabbits ?? [];
-    } else {
-      let terms = event.query.trim().split(/[-_\s]/);
-      _filtered =
-        rabbits?.filter((r) => {
-          return terms.every(
-            (t) =>
-              r.rabbitmq_cluster.toLowerCase().includes(t) ||
-              r.novus_region.toLowerCase().includes(t),
-          );
-        }) ?? [];
-    }
+  return { rabbits, queues };
+}
 
-    setFilteredRabbitClusters(_filtered);
-  };
+// ---- Panel builders (pure, no React) ----
 
-  useEffect(() => {
-    if (!auth?.isAuthenticated) return;
-    getRabbitClusters().then((res) => setRabbits(res));
-  }, [auth?.isAuthenticated]);
-
-  useEffect(() => {
-    if (!auth?.isAuthenticated || !selectedRabbitCluster) return;
-    getRabbitQueues().then((res) => setQueues(res));
-  }, [auth?.isAuthenticated, selectedRabbitCluster]);
-
-  useEffect(() => {
-    setFilteredQueues(queues?.filter((q) => q.queue.match(queueFilter)));
-  }, [queues, queueFilter]);
-
-  const genRabbitOverview = () => {
-    return [new TimeSeriesPanelBuilder()
+function buildPanels(cluster: string, queueFilter: string) {
+  return [
+    new TimeSeriesPanelBuilder()
       .title("Queues")
       .height(8)
       .span(8)
@@ -111,35 +85,65 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
         new PrometheusDataqueryBuilder()
           .datasource({ uid: "$prometheus" })
           .expr(
-            `sum(rabbitmq_detailed_queue_messages{service="${selectedRabbitCluster?.rabbitmq_cluster}", queue=~"${queueFilter}"}) by (queue)`,
-          ).legendFormat(`{{ queue }}`),
-      )];
-  };
+            `sum(rabbitmq_detailed_queue_messages{service="${cluster}", queue=~"${queueFilter}"}) by (queue)`,
+          )
+          .legendFormat(`{{ queue }}`),
+      ),
+  ];
+}
+
+// ---- Component ----
+
+export function Component({ goBack, goForward, setDashboardPanels }: Props) {
+  const auth = useAuth();
+  const env = useEnv();
+  const host = env?.["BUN_PUBLIC_PROMETHEUS_ENDPOINT"];
+  const token = auth?.user?.id_token;
+
+  const [selectedRabbitCluster, setSelectedRabbitCluster] = useState<Rabbit | undefined>();
+  const [filteredRabbitClusters, setFilteredRabbitClusters] = useState<Rabbit[]>([]);
+  const [queueFilter, setQueueFilter] = useState(".*");
+
+  const { rabbits, queues } = useEdgeData(host, token, !!auth?.isAuthenticated, selectedRabbitCluster);
+
+  const filteredQueues = queues.filter((q) => q.queue.match(queueFilter));
+
+  const searchRabbitClusters = useCallback(
+    (event: { query: string }) => {
+      if (!event.query.trim()) {
+        setFilteredRabbitClusters(rabbits);
+        return;
+      }
+      const terms = event.query.trim().split(/[-_\s]/);
+      setFilteredRabbitClusters(
+        rabbits.filter((r) =>
+          terms.every(
+            (t) =>
+              r.rabbitmq_cluster.toLowerCase().includes(t) ||
+              r.novus_region.toLowerCase().includes(t),
+          ),
+        ),
+      );
+    },
+    [rabbits],
+  );
+
+  const rabbitTemplate = (rabbit: Rabbit) => (
+    <div>
+      [{rabbit.novus_region.split("-")[0].toUpperCase()}] {rabbit.rabbitmq_cluster}
+    </div>
+  );
 
   const onSubmit = () => {
-    setDashboardPanels(FeatureID, [], genRabbitOverview());
-    goForward();
-  };
-
-  const rabbitTemplate = (rabbit) => {
-    return (
-      <div>
-        [{rabbit.novus_region.split("-")[0].toUpperCase()}]{" "}
-        {rabbit.rabbitmq_cluster}
-      </div>
-    );
-  };
-
-  const selectedRabbitTemplate = (rabbit) => {
-    return rabbit.rabbitmq_cluster;
+    if (!selectedRabbitCluster) return;
+    setDashboardPanels(FeatureID, [], buildPanels(selectedRabbitCluster.rabbitmq_cluster, queueFilter));
+    goForward?.();
   };
 
   return (
     <>
       <div className="wizard-content">
-        <h3 style={{ marginBottom: "20px", color: "#1e293b" }}>
-          Edge Configuration
-        </h3>
+        <h3 style={{ marginBottom: "20px", color: "#1e293b" }}>Edge Configuration</h3>
         <p style={{ color: "#64748b", marginBottom: "20px", fontSize: "14px" }}>
           Edge is our stateful services platform. This feature adds pre-built
           panels scoped to edge service instances.
@@ -151,17 +155,11 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
             value={selectedRabbitCluster}
             suggestions={filteredRabbitClusters}
             completeMethod={searchRabbitClusters}
-            onChange={(e) => {
-              if (e?.value?.rabbitmq_cluster != "") {
-                setSelectedRabbitCluster(e.value);
-              } else {
-                setSelectedRabbitCluster(undefined);
-              }
-            }}
+            onChange={(e) => setSelectedRabbitCluster(e.value?.rabbitmq_cluster ? e.value : undefined)}
             itemTemplate={rabbitTemplate}
-            selectedItemTemplate={selectedRabbitTemplate}
+            selectedItemTemplate={(rabbit: Rabbit) => rabbit.rabbitmq_cluster}
             dropdown
-          ></AutoComplete>
+          />
         </div>
         {selectedRabbitCluster && (
           <div className="form-group">
@@ -171,40 +169,19 @@ export function Component({ goBack, goForward, setDashboardPanels }) {
                 className="form-input"
                 value={queueFilter}
                 onChange={(e) => setQueueFilter(e.target.value)}
-              ></input>
-              <div id="queue-sum">queues: {filteredQueues?.length}</div>
+              />
+              <div id="queue-sum">queues: {filteredQueues.length}</div>
             </div>
             <div className="queuecontainer">
               <div className="queuelist">
-                {filteredQueues?.map((q) => {
-                  return <div key={q.queue}>{q.queue}</div>;
-                })}
+                {filteredQueues.map((q) => (
+                  <div key={q.queue}>{q.queue}</div>
+                ))}
               </div>
             </div>
           </div>
         )}
       </div>
-      {/* <div>
-        <select
-          value={selectedRegion}
-          onChange={(e) => setSelectedRegion(e.target.value)}
-        >
-          {[...new Set(rabbits?.map((rabbit) => rabbit.novus_region))].map(
-            (region) => (
-              <option value={region} key={region}>
-                {region}
-              </option>
-            ),
-          )}
-        </select>
-        <ul>
-          {rabbits
-            ?.filter((rabbit) => rabbit.novus_region === selectedRegion)
-            .map((rabbit) => (
-              <li key={rabbit.rabbitmq_cluster}>{rabbit.rabbitmq_cluster}</li>
-            ))}
-        </ul>
-      </div> */}
 
       <div className="wizard-footer">
         {goBack && (
