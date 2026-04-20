@@ -1,5 +1,6 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { useAuth } from "react-oidc-context";
+import { obfuscate, obfuscateStyle, ObfuscationStyle } from "../lib/obfuscator.ts"
 
 import { AutoComplete } from "primereact/autocomplete";
 
@@ -118,14 +119,14 @@ function buildVariables(runtime: string) {
   ];
 }
 
-function buildOverviewPanels(resources: Resources) {
+function buildOverviewPanels(resources: Resources, demoMode: boolean) {
   const panels: any[] = [
     new StatsPanelBuilder()
       .title("Novus: Unready Pods")
       .thresholds(
         new ThresholdsConfigBuilder()
           .mode(ThresholdsMode.Absolute)
-          .steps([{ value: 1.0, color: "red" }]),
+          .steps([{ value: 0, color: "green"}, { value: 1.0, color: "red" }]),
       )
       .description(normalizeDesc(`
         Kubernetes Pods that are either pending, with errors or unknown state.
@@ -176,7 +177,7 @@ function buildOverviewPanels(resources: Resources) {
 
     panels.push(
       new StatsPanelBuilder()
-        .title(nginxHost)
+        .title(demoMode ? obfuscateStyle(nginxHost, ObfuscationStyle.URLStyle) : nginxHost)
         .description("Overview of response codes for this ingress host over the dashboard time range")
         .height(4)
         .withTarget(promTarget(
@@ -231,9 +232,10 @@ interface ResourceListProps {
   resources: string[];
   selected: string[];
   onToggle: (resource: string) => void;
+  display: (str: string) => string;
 }
 
-function ResourceList({ title, icon, resources, selected, onToggle }: ResourceListProps) {
+function ResourceList({ title, icon, resources, selected, onToggle, display }: ResourceListProps) {
   if (resources.length === 0) return null;
   return (
     <div className="form-group">
@@ -246,7 +248,7 @@ function ResourceList({ title, icon, resources, selected, onToggle }: ResourceLi
               checked={selected.includes(resource)}
               onChange={() => onToggle(resource)}
             />
-            <span>{resource}</span>
+            <span>{display(resource)}</span>
           </li>
         ))}
       </ul>
@@ -335,7 +337,7 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [teams, setTeams] = useState<string[]>([]);
   const [runtimes, setRuntimes] = useState<string[]>([]);
-  const [formData, setFormData] = usePersistentState<FormData>("feat_novus_formData", {
+  const [formData, setFormData] = usePersistentState("feat_novus_formData", {
     runtime: "",
     showRecommendations: false,
     resources: EMPTY_RESOURCES,
@@ -344,6 +346,7 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
   const host = env?.["BUN_PUBLIC_PROMETHEUS_ENDPOINT"];
   const token = auth?.user?.id_token;
   const upn = auth?.user?.profile?.upn as string | undefined;
+  const demoMode = !!env?.["BUN_PUBLIC_DEMO_MODE"];
 
   const { allTeams, allRuntimes, selectedTeam, setSelectedTeam, deployments, statefulsets, nginxIngresses } =
     useNovusData(host, token, upn, !!auth?.isAuthenticated, formData.runtime);
@@ -390,7 +393,7 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
     if (!validate()) return;
     setDashboardPanels(
       FeatureID,
-      buildOverviewPanels(formData.resources),
+      buildOverviewPanels(formData.resources, demoMode),
       buildPanels(formData.showRecommendations),
       buildVariables(formData.runtime),
     );
@@ -455,6 +458,7 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
               resources={nginxIngresses}
               selected={formData.resources.nginxHosts}
               onToggle={(r) => toggleResource("nginxHosts", r)}
+              display={(r) => demoMode ? obfuscateStyle(r, ObfuscationStyle.URLStyle) : r}
             />
             <ResourceList
               title="Deployments"
@@ -462,6 +466,7 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
               resources={deployments}
               selected={formData.resources.deployments}
               onToggle={(r) => toggleResource("deployments", r)}
+              display={(r) => demoMode ? obfuscateStyle(r, ObfuscationStyle.LONGNAME): r}
             />
             <ResourceList
               title="Statefulsets"
@@ -469,6 +474,7 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
               resources={statefulsets}
               selected={formData.resources.statefulsets}
               onToggle={(r) => toggleResource("statefulsets", r)}
+              display={(r) => demoMode ? obfuscateStyle(r, ObfuscationStyle.LONGNAME): r}
             />
           </>
         )}
