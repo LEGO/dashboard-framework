@@ -7,7 +7,7 @@ import { DataqueryBuilder as PrometheusDataqueryBuilder } from "@grafana/grafana
 import { useEnv } from "../components/env.tsx";
 
 export const FeatureID = "rabbitmq";
-export const FeatureName = "RabbitMQ (Edge)";
+export const FeatureName = "Edge RabbitMQ";
 export const FeatureIcon = "https://www.rabbitmq.com/assets/files/rabbitmq-logo-e91cacd38fcef5219149bc5cfa10b384.svg";
 
 // ---- Types ----

@@ -7,7 +7,7 @@ import { DataqueryBuilder as PrometheusDataqueryBuilder } from "@grafana/grafana
 import { useEnv } from "../components/env.tsx";
 
 export const FeatureID = "valkey";
-export const FeatureName = "Valkey (Edge)";
+export const FeatureName = "Edge Valkey";
 export const FeatureIcon = "https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/valkey.svg"
 
 // ---- Types ----
