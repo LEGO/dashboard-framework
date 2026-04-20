@@ -5,6 +5,7 @@ import { AutoComplete } from "primereact/autocomplete";
 import { PanelBuilder as TimeSeriesPanelBuilder } from "@grafana/grafana-foundation-sdk/timeseries";
 import { DataqueryBuilder as PrometheusDataqueryBuilder } from "@grafana/grafana-foundation-sdk/prometheus";
 import { useEnv } from "../components/env.tsx";
+import { obfuscate } from "../lib/obfuscator.ts";
 
 export const FeatureID = "rabbitmq";
 export const FeatureName = "Edge RabbitMQ";
@@ -15,10 +16,12 @@ export const FeatureIcon = "https://www.rabbitmq.com/assets/files/rabbitmq-logo-
 interface Rabbit {
   rabbitmq_cluster: string;
   novus_region: string;
+  obfuscated: string;
 }
 
 interface Queue {
   queue: string;
+  obfuscated: string;
 }
 
 interface Props {
@@ -49,6 +52,7 @@ function useRabbitData(
         result.data.result.map((item: any) => ({
           rabbitmq_cluster: item.metric.rabbitmq_cluster,
           novus_region: item.metric.novus_region,
+          obfuscated: obfuscate(item.metric.rabbitmq_cluster)
         })),
       ),
     );
@@ -65,7 +69,7 @@ function useRabbitData(
       token,
     ).then((result) =>
       setQueues(
-        result.data.result.map((item: any) => ({ queue: item.metric.queue })),
+        result.data.result.map((item: any) => ({ queue: item.metric.queue, obfuscated: obfuscate(item.metric.queue) })),
       ),
     );
   }, [isAuthenticated, selectedCluster]);
@@ -75,7 +79,7 @@ function useRabbitData(
 
 // ---- Panel builders (pure, no React) ----
 
-function buildPanels(cluster: string, queueFilter: string) {
+function buildPanels(cluster: string, queueFilter: string, demoMode: boolean) {
   return [
     new TimeSeriesPanelBuilder()
       .title("Queues")
@@ -87,7 +91,7 @@ function buildPanels(cluster: string, queueFilter: string) {
           .expr(
             `sum(rabbitmq_detailed_queue_messages{service="${cluster}", queue=~"${queueFilter}"}) by (queue)`,
           )
-          .legendFormat(`{{ queue }}`),
+          .legendFormat(demoMode ? `secret-queue` : `{{ queue }}`),
       ),
   ];
 }
@@ -98,6 +102,7 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
   const auth = useAuth();
   const env = useEnv();
   const host = env?.["BUN_PUBLIC_PROMETHEUS_ENDPOINT"];
+  const demoMode = !!env?.["BUN_PUBLIC_DEMO_MODE"];
   const token = auth?.user?.id_token;
 
   const [clusterValue, setClusterValue] = useState<Rabbit | string | undefined>();
@@ -122,7 +127,8 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
           terms.every(
             (t) =>
               r.rabbitmq_cluster.toLowerCase().includes(t) ||
-              r.novus_region.toLowerCase().includes(t),
+              r.novus_region.toLowerCase().includes(t) ||
+              r.obfuscated.includes(t),
           ),
         ),
       );
@@ -130,15 +136,16 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
     [clusters],
   );
 
-  const clusterTemplate = (rabbit: Rabbit) => (
+  const clusterTemplate = (rabbit: Rabbit) => {
+    return (
     <div>
-      [{rabbit.novus_region.split("-")[0]?.toUpperCase()}] {rabbit.rabbitmq_cluster}
+      [{rabbit.novus_region.split("-")[0]?.toUpperCase()}] {demoMode ? obfuscate(rabbit.rabbitmq_cluster) : rabbit.rabbitmq_cluster}
     </div>
-  );
+  )};
 
   const onSubmit = () => {
     if (!selectedCluster) return;
-    setDashboardPanels(FeatureID, [], buildPanels(selectedCluster.rabbitmq_cluster, queueFilter));
+    setDashboardPanels(FeatureID, [], buildPanels(selectedCluster.rabbitmq_cluster, queueFilter, demoMode));
     goForward?.();
   };
 
@@ -153,13 +160,13 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
         <div className="form-group">
           <label className="form-label">RabbitMQ Cluster</label>
           <AutoComplete<Rabbit>
-            field="rabbitmq_cluster"
+            field={demoMode ? "obfuscated" : "rabbitmq_cluster"}
             value={clusterValue}
             suggestions={filteredClusters}
             completeMethod={searchClusters}
             onChange={(e) => setClusterValue(e.value)}
             itemTemplate={clusterTemplate}
-            selectedItemTemplate={(rabbit: Rabbit) => rabbit.rabbitmq_cluster}
+            selectedItemTemplate={(rabbit: Rabbit) => demoMode ? rabbit.obfuscated : rabbit.rabbitmq_cluster}
             dropdown
           />
         </div>
@@ -177,7 +184,7 @@ export function Component({ goBack, goForward, setDashboardPanels }: Props) {
             <div className="queuecontainer">
               <div className="queuelist">
                 {filteredQueues.map((q) => (
-                  <div key={q.queue}>{q.queue}</div>
+                  <div key={q.queue}>{demoMode ? q.obfuscated : q.queue}</div>
                 ))}
               </div>
             </div>
