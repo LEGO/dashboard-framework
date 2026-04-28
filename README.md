@@ -4,6 +4,16 @@ Dashboard Framework helps creating intuitive, and valuable Grafana Dashboards
 by asking simple questions and by focusing on what telemetry data would be
 more useful to show, rather than how to structure it.
 
+It is designed to help Platform Engineers and Platform Users generate
+production-ready dashboards with the following capabilities:
+
+* Highly customizable: Platform Engineers and Platform Users can select only the
+  features they need
+* Supports data from multiple platforms in the same dashboard
+* Exposes application custom metrics and logs for Developers
+* Makes it easier for Platform Engineers and Platform Users to identify issues
+  across dependencies and platforms.
+
 > [!NOTE]
 > This project is currently developed for internal use, but may later be
 > developed for broader consumption
